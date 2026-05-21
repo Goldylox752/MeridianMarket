@@ -54,6 +54,12 @@ body {
   background: #1d4ed8;
   transform: translateY(-2px);
 }
+.btn-primary:disabled {
+  background: #475569;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 .btn-outline {
   border: 1.5px solid #60a5fa;
   background: transparent;
@@ -455,7 +461,7 @@ footer {
 </div>
 
 <div class="sticky-cta">
-  <div><span class="stock-badge"><i class="fas fa-box"></i> Only 42 units left</span> <span class="urgency-text">⚡ Selling fast</span></div>
+  <div><span class="stock-badge" id="stockBadge"><i class="fas fa-box"></i> Loading stock...</span> <span class="urgency-text" id="urgencyText"></span></div>
   <div style="display: flex; gap: 12px; align-items: center;">
     <a id="whatsappStickyLink" href="#" target="_blank" style="background:#1e2a3e; border-radius: 40px; padding: 6px 14px; color:#86efac; text-decoration:none; font-weight:500;"><i class="fab fa-whatsapp"></i> WhatsApp</a>
     <button class="btn btn-primary" id="stickyBuyBtn" style="padding: 8px 22px;">Buy now – $899</button>
@@ -483,7 +489,12 @@ footer {
 </div>
 
 <script>
-// -------------------- OBFUSCATED PHONE NUMBER --------------------
+// ========== CONFIGURATION - REPLACE WITH YOUR ACTUAL VALUES ==========
+const SUPABASE_URL = 'https://your-project.supabase.co';     // <-- Replace
+const SUPABASE_ANON_KEY = 'your-anon-key';                  // <-- Replace
+const PRODUCT_SKU = 'SKY-X1';                               // Your product SKU
+
+// ========== OBFUSCATED PHONE NUMBER (DO NOT CHANGE) ==========
 (function() {
   const encoded = "37697620871"; // reverse of "17802679673"
   const phoneNumber = encoded.split('').reverse().join('');
@@ -497,25 +508,50 @@ footer {
   document.querySelectorAll('.wa-number').forEach(el => el.textContent = formatted);
 })();
 
-// -------------------- SUPABASE CONFIGURATION --------------------
-// IMPORTANT: Replace these with your actual Supabase project URL and anon key
-const SUPABASE_URL = 'https://your-project.supabase.co';
-const SUPABASE_ANON_KEY = 'your-anon-key';
+// ========== FETCH AND DISPLAY REAL-TIME STOCK ==========
+let currentStock = 0;
 
-// Create Supabase client dynamically (only if needed)
-async function submitLead(formData) {
-  const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  if (!supabaseClient) {
-    console.error('Supabase JS library not loaded. Falling back to fetch to Edge Function.');
-    // Fallback: send to your own backend endpoint (optional)
-    return false;
+async function fetchStock() {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/products?sku=eq.${PRODUCT_SKU}&select=stock`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if (!response.ok) throw new Error('Stock fetch failed');
+    const data = await response.json();
+    if (data && data.length > 0) {
+      currentStock = data[0].stock;
+      const stockBadge = document.getElementById('stockBadge');
+      const urgencySpan = document.getElementById('urgencyText');
+      if (currentStock > 0) {
+        stockBadge.innerHTML = `<i class="fas fa-box"></i> Only ${currentStock} units left`;
+        urgencySpan.textContent = currentStock <= 10 ? '⚠️ Almost gone!' : '⚡ Selling fast';
+        // Enable buy buttons
+        document.getElementById('buyNowBtn').disabled = false;
+        document.getElementById('stickyBuyBtn').disabled = false;
+      } else {
+        stockBadge.innerHTML = `<i class="fas fa-box"></i> Out of stock`;
+        urgencySpan.textContent = 'Sold out – check back soon';
+        document.getElementById('buyNowBtn').disabled = true;
+        document.getElementById('stickyBuyBtn').disabled = true;
+      }
+    }
+  } catch (err) {
+    console.error('Stock fetch error:', err);
+    document.getElementById('stockBadge').innerHTML = `<i class="fas fa-box"></i> Stock unavailable`;
   }
-  const { error } = await supabaseClient.from('leads').insert([formData]);
-  return !error;
 }
 
-// -------------------- STRIPE CHECKOUT (via Edge Function) --------------------
+fetchStock();
+
+// ========== STRIPE CHECKOUT ==========
 async function startCheckout() {
+  if (currentStock <= 0) {
+    alert('Sorry, this drone is currently out of stock.');
+    return;
+  }
   const checkoutUrl = `${SUPABASE_URL}/functions/v1/create-checkout`;
   try {
     const response = await fetch(checkoutUrl, {
@@ -538,7 +574,10 @@ async function startCheckout() {
   }
 }
 
-// -------------------- MODAL AND LEAD FORM LOGIC --------------------
+document.getElementById('buyNowBtn').addEventListener('click', startCheckout);
+document.getElementById('stickyBuyBtn').addEventListener('click', startCheckout);
+
+// ========== CONTRACTOR LEAD MODAL ==========
 const modal = document.getElementById('contractorModal');
 const contractorBtn = document.getElementById('contractorBtn');
 const closeModal = document.querySelector('.close-modal');
@@ -557,13 +596,10 @@ document.getElementById('leadForm').addEventListener('submit', async (e) => {
   };
   const msgDiv = document.getElementById('leadFormMessage');
   msgDiv.textContent = 'Submitting...';
-  // Simple validation
   if (!formData.full_name || !formData.email) {
     msgDiv.textContent = 'Please fill name and email.';
     return;
   }
-  // Since Supabase JS might not be loaded, we use a direct fetch to your Edge Function or REST API
-  // For simplicity, we call a Supabase REST endpoint directly using anon key
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
       method: 'POST',
@@ -586,19 +622,7 @@ document.getElementById('leadForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Attach buy buttons
-document.getElementById('buyNowBtn').addEventListener('click', startCheckout);
-document.getElementById('stickyBuyBtn').addEventListener('click', startCheckout);
-
-// Optional: Load Supabase JS library for better handling
-const script = document.createElement('script');
-script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
-script.onload = () => {
-  window.supabase = supabase;
-};
-document.head.appendChild(script);
-
-// Show success/cancel message from URL params
+// Handle URL success/cancel parameters
 if (window.location.search.includes('success=true')) {
   alert('Order placed successfully! You will receive a confirmation email.');
   history.replaceState({}, '', window.location.pathname);
