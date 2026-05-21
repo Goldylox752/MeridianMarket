@@ -1,65 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Upgrade Your Order</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Upgrade Your Skymaster X1 | Extra Battery + Case + Blades</title>
+<meta name="description" content="Add the Pro Kit Bundle to your drone order – extra battery, carry case, and spare blades." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 body {
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-  text-align:center;
-  padding:30px;
+  font-family: 'Inter', sans-serif;
+  background: #0a0c15;
+  color: #f0f3fa;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
-
-.box {
-  background:#1e293b;
-  padding:20px;
-  border-radius:10px;
-  max-width:400px;
-  margin:auto;
+.container {
+  max-width: 520px;
+  width: 100%;
 }
-
-button {
-  background:#22c55e;
-  padding:15px;
-  border:none;
-  border-radius:8px;
-  width:100%;
-  font-weight:bold;
-  cursor:pointer;
+.upsell-card {
+  background: #0f111a;
+  border-radius: 48px;
+  padding: 40px 32px;
+  border: 1px solid #1e293b;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+  text-align: center;
+}
+.badge {
+  background: linear-gradient(135deg, #eab308, #f97316);
+  color: #0a0c15;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 40px;
+  display: inline-block;
+  font-size: 0.75rem;
+  margin-bottom: 20px;
+}
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #FFFFFF, #b9c8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.price-block {
+  margin: 24px 0 16px;
+}
+.old-price {
+  font-size: 1.2rem;
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+.new-price {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #4ade80;
+  margin-left: 12px;
+}
+.feature-list {
+  background: rgba(255,255,255,0.03);
+  border-radius: 28px;
+  padding: 20px;
+  margin: 24px 0;
+  text-align: left;
+}
+.feature-list li {
+  list-style: none;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.feature-list i {
+  color: #4ade80;
+  width: 20px;
+}
+.btn {
+  display: inline-block;
+  font-weight: 700;
+  text-align: center;
+  padding: 14px 28px;
+  border-radius: 60px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 10px 20px -5px rgba(37,99,235,0.4);
+}
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  margin-top: 12px;
+}
+.btn-secondary:hover {
+  border-color: #60a5fa;
+  color: #e0e7ff;
+}
+.whatsapp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #86efac;
+  text-decoration: none;
+  font-weight: 500;
+  margin-top: 24px;
+  padding: 8px 16px;
+  border-radius: 40px;
+  background: rgba(34,197,94,0.08);
+  transition: all 0.2s ease;
+}
+.whatsapp-link i {
+  color: #25D366;
+}
+.whatsapp-link:hover {
+  background: rgba(34,197,94,0.15);
+}
+.loader {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.error-message {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+  padding: 12px;
+  border-radius: 20px;
+  margin: 16px 0;
+  font-size: 0.85rem;
+}
+.footer-note {
+  margin-top: 20px;
+  font-size: 0.7rem;
+  opacity: 0.6;
 }
 </style>
 </head>
-
 <body>
-
-<h2>🔥 Wait! Upgrade Your Drone</h2>
-
-<div class="box">
-
-  <p>Get the **Pro Kit Bundle** for your drone:</p>
-
-  <p>
-    ✔ Extra Battery<br>
-    ✔ Carry Case<br>
-    ✔ Spare Blades
-  </p>
-
-  <p style="text-decoration:line-through;">$299</p>
-  <h2>$199 CAD</h2>
-
-  <button onclick="window.location.href='YOUR_UPSELL_STRIPE_LINK'">
-    Yes, Add To My Order 🚀
-  </button>
-
-  <p style="margin-top:10px; font-size:0.8rem;">
-    No thanks — I'll keep my original order
-  </p>
-
+<div class="container">
+  <div class="upsell-card">
+    <div class="badge">🔥 LIMITED UPGRADE OFFER</div>
+    <h1>Supercharge Your Skymaster X1</h1>
+    <p style="opacity:0.75; margin-bottom:8px;">Add the Pro Kit Bundle to your order</p>
+    <div class="feature-list">
+      <li><i class="fas fa-check-circle"></i> Extra 5000mAh battery (double flight time)</li>
+      <li><i class="fas fa-check-circle"></i> Hard carry case with custom foam</li>
+      <li><i class="fas fa-check-circle"></i> 4x spare quick‑release blades</li>
+      <li><i class="fas fa-check-circle"></i> Free priority shipping</li>
+    </div>
+    <div class="price-block">
+      <span class="old-price">$299 USD</span>
+      <span class="new-price">$199 USD</span>
+    </div>
+    <button class="btn btn-primary" id="upsellBtn">Yes, add to my order 🚀</button>
+    <a href="/success" class="btn btn-secondary" id="noThanksBtn">No thanks, keep original order</a>
+    <div id="errorMsg" class="error-message" style="display:none;"></div>
+    <a href="#" id="whatsappSupport" class="whatsapp-link" target="_blank">
+      <i class="fab fa-whatsapp"></i> Questions? Chat with support
+    </a>
+    <div class="footer-note">30-day money‑back guarantee • 2‑year warranty</div>
+  </div>
 </div>
 
+<script>
+// ========== SUPABASE CONFIG (replace with your actual values) ==========
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_ANON_KEY = 'your-anon-key';
+
+// Upsell product details (matches your Stripe product)
+const UPSELL_PRODUCT = {
+  name: 'Skymaster X1 Pro Kit (Battery + Case + Blades)',
+  sku: 'SKY-X1-PROKIT',
+  price: 19900, // $199.00 USD
+  description: 'Extra battery, hard carry case, and 4 spare blades'
+};
+
+// ========== OBFUSCATED WHATSAPP NUMBER ==========
+(function() {
+  const encoded = "37697620871"; // reverse of "17802679673"
+  const phoneNumber = encoded.split('').reverse().join('');
+  const waLink = document.getElementById('whatsappSupport');
+  waLink.href = `https://wa.me/${phoneNumber}?text=Hello%2C%20I%20have%20a%20question%20about%20the%20Pro%20Kit%20upsell.`;
+})();
+
+// ========== CREATE UPSELL CHECKOUT SESSION ==========
+const upsellBtn = document.getElementById('upsellBtn');
+const errorDiv = document.getElementById('errorMsg');
+
+async function startUpsellCheckout() {
+  upsellBtn.disabled = true;
+  upsellBtn.innerHTML = '<span class="loader"></span> Processing...';
+  errorDiv.style.display = 'none';
+
+  try {
+    // Call your existing create-checkout Edge Function with upsell line item
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        success_url: `${window.location.origin}/success?upsell=true`,
+        cancel_url: `${window.location.origin}/success?upsell_cancelled=true`,
+        line_items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: UPSELL_PRODUCT.name,
+              description: UPSELL_PRODUCT.description,
+            },
+            unit_amount: UPSELL_PRODUCT.price,
+          },
+          quantity: 1,
+        }],
+        metadata: {
+          source: 'upsell_page',
+          sku: UPSELL_PRODUCT.sku,
+          upsell: 'true'
+        }
+      })
+    });
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error('No checkout URL received');
+    }
+  } catch (err) {
+    console.error(err);
+    errorDiv.style.display = 'block';
+    errorDiv.innerHTML = '❌ Unable to start checkout. Please try again or contact support.';
+    upsellBtn.disabled = false;
+    upsellBtn.innerHTML = 'Yes, add to my order 🚀';
+  }
+}
+
+upsellBtn.addEventListener('click', startUpsellCheckout);
+
+// Optional: fetch real stock for upsell product from Supabase (if you have inventory)
+async function checkUpsellStock() {
+  try {
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await supabase
+      .from('products')
+      .select('stock')
+      .eq('sku', UPSELL_PRODUCT.sku)
+      .single();
+    if (!error && data && data.stock <= 0) {
+      upsellBtn.disabled = true;
+      upsellBtn.textContent = 'Sold out';
+      errorDiv.style.display = 'block';
+      errorDiv.innerHTML = 'The Pro Kit is temporarily sold out. Please check back later.';
+    }
+  } catch (err) {
+    // silently fail; stock check not critical
+  }
+}
+checkUpsellStock();
+</script>
 </body>
 </html>
