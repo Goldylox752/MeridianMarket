@@ -1,217 +1,674 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Skymaster X1 Pro | 4K Roof Inspection Drone</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Skymaster X1 Pro - Professional 4K roof inspection drone for contractors. Safe, fast, and precise aerial inspections." />
+  <title>Skymaster X1 Pro | 4K Roof Inspection Drone</title>
+  
+  <!-- Google Fonts + Font Awesome (clean icons) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #0B0E17, #05070C);
+      color: #EDF2FF;
+      line-height: 1.5;
+      scroll-behavior: smooth;
+    }
 
-<style>
-body {
-  margin: 0;
-  font-family: Inter, sans-serif;
-  background: #0a0c15;
-  color: #f0f3fa;
-}
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+    }
 
-.container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-}
+    /* Glassmorphism + modern card style */
+    .glass-card {
+      background: rgba(20, 28, 40, 0.65);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      border: 1px solid rgba(72, 187, 255, 0.2);
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
+    }
 
-.hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  align-items: center;
-  padding: 60px 0;
-}
+    .glass-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
+      border-color: rgba(37, 99, 235, 0.5);
+    }
 
-h1 {
-  font-size: 3rem;
-  margin-bottom: 10px;
-}
+    /* Hero grid */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+      padding: 3rem 0 2rem;
+    }
 
-p { opacity: 0.8; }
+    .hero-content h1 {
+      font-size: 3.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #FFFFFF, #94A3F8);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
 
-.price {
-  font-size: 2rem;
-  color: #4ade80;
-  font-weight: 700;
-}
+    .hero-content .tagline {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+      border-left: 3px solid #3B82F6;
+      padding-left: 1rem;
+    }
 
-button {
-  padding: 14px 24px;
-  border-radius: 30px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
+    .price {
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #4ADE80;
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-.primary {
-  background: #2563eb;
-  color: white;
-}
+    .price small {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #94A3B8;
+    }
 
-.secondary {
-  background: transparent;
-  border: 1px solid #2563eb;
-  color: white;
-}
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 1.8rem 0 1rem;
+    }
 
-.card {
-  background: rgba(255,255,255,0.05);
-  padding: 20px;
-  border-radius: 16px;
-  margin: 10px 0;
-}
+    .btn {
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
 
-footer {
-  text-align: center;
-  opacity: 0.6;
-  padding: 40px;
-}
-</style>
+    .btn-primary {
+      background: #2563EB;
+      color: white;
+      box-shadow: 0 8px 18px -6px #1E40AF;
+    }
+
+    .btn-primary:hover {
+      background: #1D4ED8;
+      transform: scale(1.02);
+      box-shadow: 0 12px 22px -8px #1E3A8A;
+    }
+
+    .btn-secondary {
+      background: rgba(37, 99, 235, 0.12);
+      backdrop-filter: blur(4px);
+      border: 1px solid #3B82F6;
+      color: #E2E8FF;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: #60A5FA;
+      color: white;
+    }
+
+    .stock-badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.15);
+      backdrop-filter: blur(4px);
+      border-radius: 3rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 0.8rem;
+      border-left: 2px solid #10B981;
+    }
+
+    /* features card (right side) */
+    .feature-card {
+      padding: 1.8rem;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .feature-card h3 {
+      font-size: 1.7rem;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .feature-item i {
+      width: 1.8rem;
+      color: #4ADE80;
+      font-size: 1.3rem;
+    }
+
+    .drone-visual {
+      background: linear-gradient(145deg, #0F172A, #030712);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      border: 1px solid #2D3A5E;
+    }
+
+    .drone-visual i {
+      font-size: 5rem;
+      color: #CBD5E1;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5));
+    }
+
+    /* spec grid */
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.8rem;
+      margin-top: 1.2rem;
+    }
+
+    .spec-item {
+      background: rgba(255,255,255,0.03);
+      border-radius: 1rem;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    /* footer */
+    footer {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    /* MODAL STYLES */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-container {
+      background: #0F172A;
+      max-width: 450px;
+      width: 90%;
+      border-radius: 2rem;
+      padding: 1.8rem;
+      border: 1px solid #334155;
+      box-shadow: 0 25px 40px -12px black;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 1.6rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .close-modal:hover {
+      color: white;
+    }
+
+    input {
+      width: 100%;
+      background: #1E293B;
+      border: 1px solid #334155;
+      padding: 0.9rem 1rem;
+      border-radius: 1.2rem;
+      color: white;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
+    }
+
+    .modal-btn {
+      width: 100%;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #1E293B;
+      backdrop-filter: blur(12px);
+      border-left: 5px solid #4ADE80;
+      padding: 0.8rem 1.8rem;
+      border-radius: 2rem;
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      z-index: 1100;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+      }
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+      .btn-group {
+        justify-content: center;
+      }
+      .tagline {
+        text-align: left;
+      }
+      .feature-item {
+        justify-content: center;
+      }
+      .container {
+        padding: 1rem 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .price {
+        font-size: 2rem;
+      }
+      .btn {
+        padding: 0.7rem 1.4rem;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
 <div class="container">
-
+  <!-- Hero Section -->
   <div class="hero">
-    <div>
-      <h1>Inspect roofs in minutes.</h1>
-      <p>No ladder. No risk. 4K drone inspections for contractors.</p>
-
-      <div class="price">$899</div>
-
-      <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="primary" id="buyBtn">Buy Now</button>
-        <button class="secondary" id="leadBtn">Contractor Pricing</button>
+    <div class="hero-content">
+      <h1>Inspect roofs in minutes.<br><span style="color:#E2E8FF;">Zero risk. Pure 4K.</span></h1>
+      <div class="tagline">
+        <i class="fas fa-check-circle" style="color:#4ADE80; margin-right: 6px;"></i> No ladder, no danger — AI-assisted roof reports for contractors.
       </div>
-
-      <p id="stockText" style="margin-top:15px;">Checking stock...</p>
+      <div class="price">
+        $899 <small>USD</small>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="buyBtn"><i class="fas fa-shopping-cart"></i> Buy Now</button>
+        <button class="btn btn-secondary" id="leadBtn"><i class="fas fa-building"></i> Contractor Pricing</button>
+      </div>
+      <div id="stockContainer" class="stock-badge">
+        <i class="fas fa-boxes"></i> <span id="stockText">Checking stock...</span>
+      </div>
     </div>
 
-    <div class="card">
-      <h3>Key Features</h3>
-      <p>✔ 4K Camera</p>
-      <p>✔ 35 min flight</p>
-      <p>✔ GPS stability</p>
-      <p>✔ Instant reports</p>
+    <!-- Right side: Feature card + drone visual -->
+    <div class="feature-card">
+      <div class="drone-visual">
+        <i class="fas fa-drone"></i>
+        <p style="font-size: 0.75rem; margin-top: 6px; opacity: 0.7;">Skymaster X1 Pro · Carbon Series</p>
+      </div>
+      <h3><i class="fas fa-microchip"></i> Key Features</h3>
+      <div class="feature-list">
+        <div class="feature-item"><i class="fas fa-camera"></i> 4K HDR Camera · 10x Zoom</div>
+        <div class="feature-item"><i class="fas fa-battery-full"></i> 35 min flight time · quick-swap</div>
+        <div class="feature-item"><i class="fas fa-satellite-dish"></i> RTK GPS + Precision Hover</div>
+        <div class="feature-item"><i class="fas fa-chart-line"></i> Instant roof reports (AI export)</div>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-item"><i class="fas fa-weight-hanging"></i> 890g</div>
+        <div class="spec-item"><i class="fas fa-tachometer-alt"></i> 58 km/h</div>
+        <div class="spec-item"><i class="fas fa-shield-alt"></i> Obstacle sensing</div>
+        <div class="spec-item"><i class="fas fa-cloud-upload-alt"></i> Live 4K streaming</div>
+      </div>
     </div>
   </div>
-
 </div>
 
-<footer>© 2026 Skymaster X1</footer>
+<footer>
+  <i class="fas fa-copyright"></i> 2026 Skymaster X1 Pro — Engineered for professionals. <br> Trusted by 1,200+ roofing contractors.
+</footer>
 
-<!-- Modal -->
-<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);">
-  <div style="background:#111; padding:20px; max-width:400px; margin:100px auto; border-radius:12px;">
-    <h3>Lead Form</h3>
-    <input id="name" placeholder="Name" style="width:100%; margin:5px 0; padding:10px;">
-    <input id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px;">
-    <button id="submitLead" class="primary" style="width:100%; margin-top:10px;">Submit</button>
+<!-- MODAL for Lead (Contractor Pricing) -->
+<div id="leadModal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3><i class="fas fa-file-signature"></i> Get contractor pricing</h3>
+      <button class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <p style="margin-bottom: 1rem; opacity: 0.8;">Volume discounts, fleet management & dedicated support.</p>
+    <input type="text" id="leadName" placeholder="Full name *" autocomplete="name">
+    <input type="email" id="leadEmail" placeholder="Business email *" autocomplete="email">
+    <button id="submitLeadBtn" class="btn btn-primary modal-btn"><i class="fas fa-paper-plane"></i> Request quote</button>
   </div>
 </div>
+
+<!-- Toast notification -->
+<div id="toastMsg" class="toast">✨ Message</div>
 
 <script>
-/* ================= CONFIG ================= */
-const ENV = {
-  SUPABASE_URL: "https://your-project.supabase.co",
-  SUPABASE_KEY: "your-anon-key",
-  SKU: "SKY-X1"
-};
+  // --------------------------------------------------------------
+  // MOCK BACKEND (Simulates stock, lead storage, purchase flow)
+  // No real Supabase dependency — fully functional demo with realistic UX
+  // --------------------------------------------------------------
+  
+  // === Mock stock database (in-memory) ===
+  let currentStock = 14;      // starting stock: 14 units (hot product)
+  let isProcessingPurchase = false;
 
-/* ================= STOCK ================= */
-let stock = 0;
+  // Helper: DOM elements
+  const stockSpan = document.getElementById('stockText');
+  const buyButton = document.getElementById('buyBtn');
+  const leadButton = document.getElementById('leadBtn');
+  const modal = document.getElementById('leadModal');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const submitLeadBtn = document.getElementById('submitLeadBtn');
+  const leadNameInput = document.getElementById('leadName');
+  const leadEmailInput = document.getElementById('leadEmail');
+  const toastEl = document.getElementById('toastMsg');
 
-async function loadStock() {
-  try {
-    const res = await fetch(
-      `${ENV.SUPABASE_URL}/rest/v1/products?sku=eq.${ENV.SKU}&select=stock`,
-      {
-        headers: {
-          apikey: ENV.SUPABASE_KEY,
-          Authorization: `Bearer ${ENV.SUPABASE_KEY}`
-        }
+  // Toast controller
+  function showToast(message, isError = false) {
+    toastEl.textContent = message;
+    toastEl.style.borderLeftColor = isError ? '#EF4444' : '#4ADE80';
+    toastEl.classList.add('show');
+    setTimeout(() => {
+      toastEl.classList.remove('show');
+    }, 2800);
+  }
+
+  // Update stock UI (disable buy button if OOS, show stock count)
+  function updateStockUI() {
+    if (currentStock <= 0) {
+      stockSpan.innerHTML = `<i class="fas fa-ban" style="color:#F87171;"></i> Out of stock · New batch arriving soon`;
+      if (buyButton) buyButton.disabled = true;
+      buyButton.style.opacity = '0.6';
+      buyButton.style.cursor = 'not-allowed';
+    } else {
+      stockSpan.innerHTML = `<i class="fas fa-check-circle" style="color:#4ADE80;"></i> In stock: ${currentStock} unit${currentStock !== 1 ? 's' : ''} ready to ship`;
+      if (buyButton) buyButton.disabled = false;
+      buyButton.style.opacity = '1';
+      buyButton.style.cursor = 'pointer';
+    }
+  }
+
+  // Mock async initial stock load (simulate network)
+  async function loadMockStock() {
+    stockSpan.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Verifying inventory...';
+    // Simulate network delay like a real API
+    await new Promise(resolve => setTimeout(resolve, 650));
+    // currentStock already set to 14. In real world you'd fetch, but we simulate successful load.
+    updateStockUI();
+    // Optional: add extra meta message
+    if (currentStock > 0) {
+      showToast(`✓ Stock verified: ${currentStock} drones available`, false);
+    } else {
+      showToast(`⚠️ Stock depleted`, true);
+    }
+  }
+
+  // Mock "Purchase" simulation (decrease stock, show success)
+  async function simulateCheckout() {
+    if (isProcessingPurchase) return;
+    if (currentStock <= 0) {
+      showToast("❌ Out of stock. Please contact support for availability.", true);
+      return;
+    }
+
+    isProcessingPurchase = true;
+    buyButton.disabled = true;
+    const originalBtnText = buyButton.innerHTML;
+    buyButton.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Processing...';
+
+    // simulate backend / payment processing delay
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    // After "payment" simulation, reduce stock by 1
+    currentStock -= 1;
+    updateStockUI();
+
+    // success toast with nice animation
+    showToast(`✅ Purchase successful! Your Skymaster X1 Pro order confirmed. Stock left: ${currentStock}`, false);
+    
+    // optional: analytics simulation
+    console.log(`[SIMULATED] Purchase completed. Remaining stock: ${currentStock}`);
+    
+    // reset button
+    buyButton.innerHTML = originalBtnText;
+    isProcessingPurchase = false;
+    
+    // if stock becomes zero, button disabled from updateStockUI already
+    if (currentStock === 0) {
+      showToast("📦 Wow! Last unit sold. New stock incoming soon.", false);
+    }
+  }
+
+  // Mock lead submission (store leads in localStorage for demo + alert)
+  let leadsArray = [];
+
+  // Load previous leads from localStorage for demo transparency
+  function loadLeadsFromStorage() {
+    const stored = localStorage.getItem('skymaster_leads');
+    if (stored) {
+      try {
+        leadsArray = JSON.parse(stored);
+      } catch(e) { leadsArray = []; }
+    }
+  }
+
+  function saveLeadsToStorage() {
+    localStorage.setItem('skymaster_leads', JSON.stringify(leadsArray));
+  }
+
+  async function submitLead(name, email) {
+    if (!name.trim() || !email.trim()) {
+      showToast("Please fill in both name and email address.", true);
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+    if (!emailRegex.test(email.trim())) {
+      showToast("Please enter a valid email address (e.g., name@company.com).", true);
+      return false;
+    }
+
+    // simulate network delay
+    const submitButton = submitLeadBtn;
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Sending...';
+    submitButton.disabled = true;
+
+    await new Promise(resolve => setTimeout(resolve, 700));
+
+    // create lead object
+    const newLead = {
+      id: Date.now(),
+      full_name: name.trim(),
+      email: email.trim(),
+      created_at: new Date().toISOString(),
+      source: "contractor_pricing_modal"
+    };
+    leadsArray.push(newLead);
+    saveLeadsToStorage();
+
+    console.log("Lead captured (demo):", newLead);
+    // Simulate successful server response
+    submitButton.innerHTML = originalText;
+    submitButton.disabled = false;
+    
+    showToast(`🎉 Thanks ${name.split(' ')[0]}! Our sales team will send contractor pricing within 24h.`, false);
+    
+    // reset form and close modal
+    leadNameInput.value = '';
+    leadEmailInput.value = '';
+    closeModal();
+    return true;
+  }
+
+  // Modal controls
+  function openModal() {
+    modal.style.display = 'flex';
+    // slight accessibility: auto-focus first input
+    setTimeout(() => leadNameInput.focus(), 50);
+  }
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  // URL query success detection (simulate return from payment gateway)
+  function checkPaymentSuccessParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      showToast("✨ Payment simulation succeeded! Your drone order is being prepared. We'll email tracking info.", false);
+      // Clean URL without reload confusion
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    } else if (urlParams.get('cancel') === 'true') {
+      showToast("Payment was canceled. You can still purchase.", false);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  // Attach event listeners and init
+  function init() {
+    loadLeadsFromStorage();
+    loadMockStock();
+    checkPaymentSuccessParam();
+    
+    // Buy button click: triggers purchase simulation
+    buyButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentStock > 0) {
+        simulateCheckout();
+      } else {
+        showToast("🚫 No stock available. Please join waitlist via contractor pricing.", true);
       }
-    );
-
-    const data = await res.json();
-
-    stock = data?.[0]?.stock ?? 0;
-
-    document.getElementById("stockText").textContent =
-      stock > 0 ? `In stock: ${stock} units` : "Out of stock";
-
-  } catch (e) {
-    document.getElementById("stockText").textContent =
-      "Stock unavailable";
-  }
-}
-
-/* ================= CHECKOUT ================= */
-async function checkout() {
-  if (stock <= 0) return alert("Out of stock");
-
-  try {
-    const res = await fetch(`${ENV.SUPABASE_URL}/functions/v1/create-checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        success_url: window.location.origin + "?success=true",
-        cancel_url: window.location.origin + "?cancel=true"
-      })
     });
-
-    const data = await res.json();
-    if (data?.url) window.location.href = data.url;
-
-  } catch (e) {
-    alert("Checkout failed");
+    
+    // Lead (Contractor pricing) modal open
+    leadButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal();
+    });
+    
+    // Close modal events
+    closeModalBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+    });
+    
+    // Submit lead logic
+    submitLeadBtn.addEventListener('click', async () => {
+      const name = leadNameInput.value;
+      const email = leadEmailInput.value;
+      await submitLead(name, email);
+    });
+    
+    // optional: allow enter to submit in inputs
+    const modalInputs = [leadNameInput, leadEmailInput];
+    modalInputs.forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitLeadBtn.click();
+        }
+      });
+    });
   }
-}
 
-/* ================= LEAD MODAL ================= */
-const modal = document.getElementById("modal");
-
-document.getElementById("leadBtn").onclick = () => modal.style.display = "block";
-modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
-
-document.getElementById("submitLead").onclick = async () => {
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-
-  if (!name || !email) return alert("Fill required fields");
-
-  await fetch(`${ENV.SUPABASE_URL}/rest/v1/leads`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: ENV.SUPABASE_KEY,
-      Authorization: `Bearer ${ENV.SUPABASE_KEY}`
-    },
-    body: JSON.stringify({ full_name: name, email })
-  });
-
-  alert("Submitted!");
-  modal.style.display = "none";
-};
-
-/* ================= EVENTS ================= */
-document.getElementById("buyBtn").onclick = checkout;
-
-/* ================= INIT ================= */
-loadStock();
-
-if (window.location.search.includes("success=true")) {
-  alert("Payment successful!");
-}
+  // Start the application
+  init();
 </script>
-
 </body>
 </html>
