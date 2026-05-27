@@ -4,283 +4,835 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Meridian Market by NorthSky — AI Commerce Engine</title>
+<title>Meridian Market by NorthSky</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<meta
+  name="description"
+  content="Meridian Market by NorthSky is an AI-powered commerce engine that discovers, scores, and sells winning products automatically."
+/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+  rel="stylesheet"
+/>
 
 <style>
 :root{
-  --bg:#070A12;
+  --bg:#060816;
+  --bg2:#0c1224;
   --panel:rgba(255,255,255,0.04);
+  --panel2:rgba(255,255,255,0.06);
   --border:rgba(255,255,255,0.08);
-  --text:#EAF2FF;
-  --muted:rgba(234,242,255,0.65);
-  --blue:#3b82f6;
+
+  --text:#eef4ff;
+  --muted:rgba(238,244,255,0.68);
+
+  --blue:#4f7cff;
+  --blue2:#2563eb;
+
   --green:#22c55e;
   --gold:#fbbf24;
+
+  --shadow:0 10px 40px rgba(0,0,0,0.45);
 }
 
-*{margin:0;padding:0;box-sizing:border-box;}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
 
 body{
   font-family:Inter,sans-serif;
-  background:radial-gradient(circle at top,#111a33,var(--bg));
+  background:
+    radial-gradient(circle at top,#152348 0%,#0b1020 35%,#060816 100%);
   color:var(--text);
+  overflow-x:hidden;
 }
 
-/* TOP BAR */
-.topbar{
-  padding:10px;
-  text-align:center;
-  font-size:12px;
-  background:#0f172a;
+/* NAV */
+nav{
+  position:sticky;
+  top:0;
+  z-index:999;
+  backdrop-filter:blur(16px);
+  background:rgba(6,8,22,0.72);
   border-bottom:1px solid var(--border);
-  letter-spacing:.3px;
 }
 
-/* HEADER */
-.header{
-  max-width:1100px;
+.nav-inner{
+  max-width:1280px;
   margin:auto;
-  padding:60px 20px 25px;
-  text-align:center;
+  padding:18px 24px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 
-.header h1{
-  font-size:42px;
+.logo{
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:-0.4px;
+}
+
+.logo span{
+  color:var(--blue);
+}
+
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+.nav-links a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:14px;
+  transition:.2s;
+}
+
+.nav-links a:hover{
+  color:white;
+}
+
+.launch-btn{
+  background:linear-gradient(135deg,var(--blue),#6ea4ff);
+  color:white !important;
+  padding:11px 16px;
+  border-radius:12px;
+  font-weight:700;
+  box-shadow:0 8px 25px rgba(79,124,255,0.35);
+}
+
+/* HERO */
+.hero{
+  max-width:1280px;
+  margin:auto;
+
+  padding:
+    110px
+    24px
+    70px;
+
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:50px;
+  align-items:center;
+}
+
+.hero-left h1{
+  font-size:68px;
+  line-height:1;
+  letter-spacing:-2px;
   font-weight:800;
 }
 
-.header p{
+.hero-left h1 span{
+  background:linear-gradient(135deg,#8db5ff,#4f7cff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.hero-left p{
+  margin-top:24px;
+  font-size:17px;
+  line-height:1.7;
   color:var(--muted);
+  max-width:720px;
+}
+
+.hero-actions{
+  margin-top:30px;
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:14px 18px;
+  border-radius:14px;
+
+  font-size:14px;
+  font-weight:700;
+  text-decoration:none;
+
+  transition:.22s;
+}
+
+.primary{
+  background:linear-gradient(135deg,var(--blue),#6ea4ff);
+  color:white;
+  box-shadow:0 10px 30px rgba(79,124,255,.35);
+}
+
+.primary:hover{
+  transform:translateY(-2px);
+}
+
+.secondary{
+  border:1px solid var(--border);
+  color:white;
+  background:rgba(255,255,255,0.03);
+}
+
+.secondary:hover{
+  background:rgba(255,255,255,0.06);
+}
+
+/* AI PANEL */
+.hero-panel{
+  background:linear-gradient(
+    145deg,
+    rgba(255,255,255,0.06),
+    rgba(255,255,255,0.03)
+  );
+
+  border:1px solid var(--border);
+  border-radius:26px;
+  padding:24px;
+
+  box-shadow:var(--shadow);
+}
+
+.panel-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  margin-bottom:18px;
+}
+
+.panel-title h3{
+  font-size:18px;
+}
+
+.live{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:#8fffc1;
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:#22c55e;
+  box-shadow:0 0 12px #22c55e;
+}
+
+.metric-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+.metric{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:18px;
+  padding:18px;
+}
+
+.metric-value{
+  font-size:28px;
+  font-weight:800;
+}
+
+.metric-label{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* SECTION */
+.section{
+  max-width:1280px;
+  margin:auto;
+  padding:20px 24px 70px;
+}
+
+.section-header{
+  margin-bottom:30px;
+}
+
+.section-header h2{
+  font-size:34px;
+  letter-spacing:-1px;
+}
+
+.section-header p{
   margin-top:10px;
-  max-width:700px;
-  margin-left:auto;
-  margin-right:auto;
-  line-height:1.5;
+  color:var(--muted);
+  max-width:680px;
+  line-height:1.6;
 }
 
 /* GRID */
-.container{
-  max-width:1100px;
-  margin:auto;
-  padding:20px;
-}
-
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:18px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:22px;
 }
 
 /* CARD */
 .card{
-  background:linear-gradient(145deg,#111827,#0f172a);
+  background:linear-gradient(
+    145deg,
+    rgba(17,24,39,0.92),
+    rgba(15,23,42,0.98)
+  );
+
   border:1px solid var(--border);
-  border-radius:18px;
+  border-radius:24px;
+
   overflow:hidden;
-  transition:.25s;
-  display:flex;
-  flex-direction:column;
+
+  transition:.24s;
+  position:relative;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,0.06),
+    transparent
+  );
+  pointer-events:none;
 }
 
 .card:hover{
   transform:translateY(-6px);
-  border-color:#3b82f655;
+  border-color:rgba(79,124,255,.35);
+  box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+
+.img-wrap{
+  position:relative;
 }
 
 .img{
   width:100%;
-  height:190px;
+  height:260px;
   object-fit:cover;
-  background:#0b1220;
+  background:#111827;
 }
 
-.content{
-  padding:14px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+.ai-badge{
+  position:absolute;
+  top:14px;
+  left:14px;
 
-.title{
-  font-size:15px;
-  font-weight:700;
-}
+  background:rgba(15,23,42,.88);
+  border:1px solid rgba(255,255,255,.08);
 
-.desc{
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.4;
-}
+  color:#8db5ff;
 
-/* ROW */
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.price{
-  color:var(--green);
-  font-weight:800;
-  font-size:16px;
-}
-
-.score{
   font-size:11px;
-  color:#93c5fd;
-}
+  font-weight:700;
 
-/* TAGS */
-.tags{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.tag{
-  font-size:10px;
-  padding:4px 8px;
+  padding:8px 10px;
   border-radius:999px;
-  background:#1f2937;
-  color:var(--muted);
+
+  backdrop-filter:blur(12px);
 }
 
 .winner{
-  background:#064e3b;
   color:#34d399;
 }
 
-/* BUTTON */
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
+.content{
+  padding:18px;
+}
+
+.title{
+  font-size:16px;
+  font-weight:700;
+  line-height:1.4;
+}
+
+.desc{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+  min-height:60px;
+}
+
+.meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  margin-top:18px;
+}
+
+.price{
+  font-size:24px;
   font-weight:800;
+  color:var(--green);
+}
+
+.score{
+  text-align:right;
+}
+
+.score-label{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.score-value{
+  margin-top:2px;
+  font-size:15px;
+  font-weight:700;
+  color:#8db5ff;
+}
+
+.tags{
+  margin-top:16px;
+
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.tag{
+  padding:7px 10px;
+  border-radius:999px;
+
+  background:#162033;
+  color:#b5cfff;
+
+  font-size:11px;
+  font-weight:600;
+}
+
+.stock-low{
+  background:#3a1717;
+  color:#ffb4b4;
+}
+
+.buy{
+  margin-top:18px;
+
+  width:100%;
+  border:none;
   cursor:pointer;
-  background:var(--blue);
+
+  padding:14px;
+  border-radius:14px;
+
+  font-weight:800;
+  font-size:14px;
+
   color:white;
-  transition:.2s;
+
+  background:linear-gradient(
+    135deg,
+    var(--blue),
+    var(--blue2)
+  );
+
+  transition:.22s;
 }
 
-button:hover{
-  background:#2563eb;
+.buy:hover{
   transform:translateY(-1px);
+  filter:brightness(1.05);
 }
 
-button:disabled{
+.buy:disabled{
   background:#374151;
   cursor:not-allowed;
 }
 
+/* EMPTY */
+.empty{
+  text-align:center;
+  padding:60px 20px;
+  color:var(--muted);
+}
+
+/* LOADING */
+.loading-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:22px;
+}
+
+.skeleton{
+  height:420px;
+  border-radius:24px;
+
+  background:linear-gradient(
+    90deg,
+    #111827,
+    #1f2937,
+    #111827
+  );
+
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+}
+
+@keyframes shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
 /* FOOTER */
 footer{
-  text-align:center;
-  padding:40px;
-  font-size:12px;
-  color:var(--muted);
   border-top:1px solid var(--border);
+
+  margin-top:60px;
+  padding:40px 24px;
+
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* MOBILE */
+@media(max-width:980px){
+
+  .hero{
+    grid-template-columns:1fr;
+    padding-top:80px;
+  }
+
+  .hero-left h1{
+    font-size:52px;
+  }
+}
+
+@media(max-width:640px){
+
+  .nav-links{
+    gap:12px;
+  }
+
+  .nav-links a{
+    font-size:12px;
+  }
+
+  .hero-left h1{
+    font-size:42px;
+  }
+
+  .section-header h2{
+    font-size:28px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  ⚡ Meridian Market by NorthSky • Autonomous AI Commerce Engine • Live Product Intelligence
-</div>
+<nav>
+  <div class="nav-inner">
 
-<div class="header">
-  <h1>Meridian Market</h1>
-  <p>
-    Built by NorthSky — an AI-powered commerce system that discovers,
-    scores, and sells winning products automatically in real time.
-  </p>
-</div>
+    <div class="logo">
+      Meridian<span>Market</span>
+    </div>
 
-<div class="container">
-  <div id="products" class="grid">Loading products...</div>
-</div>
+    <div class="nav-links">
+      <a href="#products-section">Products</a>
+      <a href="#intelligence">AI Engine</a>
+      <a href="#" class="launch-btn">Launch System</a>
+    </div>
+
+  </div>
+</nav>
+
+<section class="hero">
+
+  <div class="hero-left">
+
+    <h1>
+      AI Powered
+      <span>Commerce Intelligence</span>
+    </h1>
+
+    <p>
+      Meridian Market by NorthSky continuously discovers, scores,
+      and launches high-converting products using autonomous
+      product mining, real-time analytics, and AI sales feedback loops.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#products-section" class="btn primary">
+        Explore Products
+      </a>
+
+      <a href="#" class="btn secondary">
+        View AI Engine
+      </a>
+    </div>
+
+  </div>
+
+  <div class="hero-panel">
+
+    <div class="panel-title">
+      <h3>AI Commerce Engine</h3>
+
+      <div class="live">
+        <div class="dot"></div>
+        LIVE
+      </div>
+    </div>
+
+    <div class="metric-grid">
+
+      <div class="metric">
+        <div class="metric-value">247</div>
+        <div class="metric-label">Products Analyzed</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-value">91%</div>
+        <div class="metric-label">AI Accuracy</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-value">18</div>
+        <div class="metric-label">Winning Products</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-value">$42k</div>
+        <div class="metric-label">Revenue Tracked</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section class="section" id="products-section">
+
+  <div class="section-header">
+    <h2>AI Selected Products</h2>
+
+    <p>
+      Every product is analyzed through Meridian’s autonomous
+      scoring engine using pricing velocity, engagement,
+      conversion potential, and trend intelligence.
+    </p>
+  </div>
+
+  <div id="products" class="loading-grid">
+
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+
+  </div>
+
+</section>
 
 <footer>
-  © 2026 Meridian Market by NorthSky — Autonomous Commerce Intelligence System
+  © 2026 Meridian Market by NorthSky — Autonomous AI Commerce Infrastructure
 </footer>
 
 <script>
-const API = "https://YOUR-BACKEND.com";
+const API = "https://skyscan-ccjt.onrender.com";
 
 /* LOAD PRODUCTS */
 async function loadProducts(){
+
+  const container = document.getElementById("products");
+
   try{
-    const res = await fetch(API + "/products");
+
+    const res = await fetch(`${API}/products`, {
+      method:"GET",
+      headers:{
+        "Content-Type":"application/json"
+      }
+    });
+
+    if(!res.ok){
+      throw new Error(`API Error ${res.status}`);
+    }
+
     const products = await res.json();
 
-    const el = document.getElementById("products");
+    if(!Array.isArray(products)){
+      throw new Error("Invalid products");
+    }
 
-    if(!products?.length){
-      el.innerHTML = "<p style='opacity:.6;text-align:center'>No products found</p>";
+    if(products.length === 0){
+
+      container.innerHTML = `
+        <div class="empty">
+          No products available
+        </div>
+      `;
+
       return;
     }
 
-    el.innerHTML = products.map(p => {
-      const lowStock = p.stock <= 5;
-      const winner = p.score && p.score > 80;
+    container.className = "grid";
+
+    container.innerHTML = products.map(p => {
+
+      const lowStock = Number(p.stock) <= 5;
+      const winner = Number(p.score || 0) >= 80;
 
       return `
         <div class="card">
 
-          <img class="img" src="${p.image_url}" />
+          <div class="img-wrap">
+
+            <img
+              class="img"
+              src="${escapeHtml(p.image_url)}"
+              loading="lazy"
+
+              onerror="
+                this.src='https://placehold.co/600x600/111827/FFFFFF?text=Meridian+Market'
+              "
+            />
+
+            <div class="ai-badge ${winner ? 'winner' : ''}">
+              ${winner ? 'AI WINNER' : 'AI VERIFIED'}
+            </div>
+
+          </div>
 
           <div class="content">
 
-            <div class="title">${escapeHtml(p.name)}</div>
-            <div class="desc">${escapeHtml(p.description || "")}</div>
+            <div class="title">
+              ${escapeHtml(p.name)}
+            </div>
 
-            <div class="row">
-              <div class="price">$${Number(p.price).toFixed(2)}</div>
-              <div class="score">Score: ${p.score || "N/A"}</div>
+            <div class="desc">
+              ${escapeHtml(
+                p.description ||
+                "AI selected product optimized for conversion."
+              )}
+            </div>
+
+            <div class="meta">
+
+              <div class="price">
+                $${Number(p.price || 0).toFixed(2)}
+              </div>
+
+              <div class="score">
+                <div class="score-label">
+                  AI SCORE
+                </div>
+
+                <div class="score-value">
+                  ${p.score || "N/A"}
+                </div>
+              </div>
+
             </div>
 
             <div class="tags">
-              <div class="tag">${lowStock ? "Low Stock" : "In Stock"}</div>
-              ${winner ? `<div class="tag winner">WINNER</div>` : ""}
+
+              <div class="tag ${lowStock ? 'stock-low' : ''}">
+                ${lowStock ? 'Low Stock' : 'In Stock'}
+              </div>
+
+              <div class="tag">
+                ${p.category || "Trending"}
+              </div>
+
             </div>
 
-            <button onclick="buy('${p.sku}')" ${p.stock<=0?'disabled':''}>
-              ${p.stock<=0 ? "Sold Out" : "Buy Now"}
+            <button
+              class="buy"
+              onclick="buy('${p.sku}')"
+              ${Number(p.stock) <= 0 ? 'disabled' : ''}
+            >
+              ${
+                Number(p.stock) <= 0
+                ? 'Sold Out'
+                : 'Buy Now'
+              }
             </button>
 
           </div>
+
         </div>
       `;
+
     }).join("");
 
   } catch(err){
-    document.getElementById("products").innerHTML =
-      "<p style='opacity:.6;text-align:center'>Failed to load products</p>";
+
+    console.error(err);
+
+    container.innerHTML = `
+      <div class="empty">
+        Failed to load products
+      </div>
+    `;
   }
 }
 
-/* CHECKOUT */
+/* BUY FLOW */
 async function buy(sku){
-  const res = await fetch(API + "/create-checkout", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ sku })
-  });
 
-  const data = await res.json();
-  if(data.url) window.location.href = data.url;
+  try{
+
+    const res = await fetch(`${API}/create-checkout`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({ sku })
+    });
+
+    if(!res.ok){
+      throw new Error("Checkout failed");
+    }
+
+    const data = await res.json();
+
+    if(data.url){
+      window.location.href = data.url;
+    } else {
+      alert("Stripe checkout unavailable");
+    }
+
+  } catch(err){
+
+    console.error(err);
+    alert("Network error");
+
+  }
 }
 
-/* SAFE ESCAPE */
+/* SAFE HTML */
 function escapeHtml(str){
+
   return String(str || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
 }
 
 loadProducts();
