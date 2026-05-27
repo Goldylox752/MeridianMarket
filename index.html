@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoofFlow Store</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+
 <style>
 body{
   margin:0;
@@ -13,29 +15,79 @@ body{
   color:white;
 }
 
+/* HEADER */
+.header{
+  max-width:1100px;
+  margin:auto;
+  padding:40px 20px 10px;
+}
+.header h1{
+  font-size:32px;
+  margin:0;
+}
+.header p{
+  opacity:.7;
+}
+
+/* GRID */
 .container{
   max-width:1100px;
   margin:auto;
-  padding:30px;
+  padding:20px;
 }
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:20px;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:22px;
 }
 
+/* PRODUCT CARD */
 .card{
-  background:#111827;
-  border-radius:18px;
-  padding:15px;
+  background:linear-gradient(145deg,#111827,#0f172a);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:20px;
+  overflow:hidden;
+  transition:.2s;
+  display:flex;
+  flex-direction:column;
 }
 
-img{
+.card:hover{
+  transform:translateY(-4px);
+  border-color:#2563eb55;
+}
+
+.img{
   width:100%;
-  border-radius:12px;
-  height:160px;
+  height:180px;
   object-fit:cover;
+  background:#0b1220;
+}
+
+.content{
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.title{
+  font-size:18px;
+  font-weight:700;
+}
+
+.desc{
+  font-size:13px;
+  opacity:.75;
+  line-height:1.4;
+}
+
+/* PRICE + STOCK */
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 .price{
@@ -44,13 +96,28 @@ img{
   font-size:18px;
 }
 
+.stock{
+  font-size:12px;
+  opacity:.7;
+}
+
+.badge{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#1f2937;
+}
+
+/* BUTTON */
 .btn{
   width:100%;
-  padding:10px;
+  padding:12px;
   border-radius:12px;
   border:none;
   cursor:pointer;
-  font-weight:700;
+  font-weight:800;
+  margin-top:8px;
+  transition:.2s;
 }
 
 .buy{
@@ -58,22 +125,66 @@ img{
   color:white;
 }
 
-.stock{
-  font-size:12px;
-  opacity:.7;
+.buy:hover{
+  background:#1d4ed8;
+  transform:translateY(-1px);
+}
+
+.buy:disabled{
+  background:#374151;
+  cursor:not-allowed;
+}
+
+/* LOADING SKELETON */
+.skeleton{
+  height:260px;
+  background:linear-gradient(90deg,#111827,#1f2937,#111827);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:20px;
+}
+
+@keyframes shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+/* TOP BAR */
+.topbar{
+  background:#0f172a;
+  padding:10px;
+  text-align:center;
+  font-size:13px;
+  border-bottom:1px solid #1f2937;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  .header h1{font-size:24px;}
 }
 </style>
 </head>
 
 <body>
 
+<div class="topbar">
+  🚀 RoofFlow Store • Fast checkout • Live inventory • Contractor-grade tools
+</div>
+
+<div class="header">
+  <h1>RoofFlow Store</h1>
+  <p>Professional drone & inspection tools for contractors</p>
+</div>
+
 <div class="container">
+  <div id="products" class="grid">
 
-<h1>RoofFlow Store</h1>
-<p>Professional tools for contractors</p>
+    <!-- skeletons first -->
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
 
-<div id="products" class="grid"></div>
-
+  </div>
 </div>
 
 <script>
@@ -81,28 +192,53 @@ const API = "https://YOUR-BACKEND.com";
 
 /* LOAD PRODUCTS */
 async function loadProducts(){
-  const res = await fetch(`${API}/products`);
-  const products = await res.json();
+  try{
+    const res = await fetch(`${API}/products`);
+    const products = await res.json();
 
-  const container = document.getElementById("products");
+    const container = document.getElementById("products");
 
-  container.innerHTML = products.map(p => `
-    <div class="card">
-      <img src="${p.image_url}" />
-      <h3>${p.name}</h3>
-      <p>${p.description}</p>
+    container.innerHTML = products.map(p => {
 
-      <div class="price">$${p.price}</div>
-      <div class="stock">Stock: ${p.stock}</div>
+      const lowStock = p.stock <= 5;
 
-      <button class="btn buy" onclick="buy('${p.sku}')">
-        Buy Now
-      </button>
-    </div>
-  `).join("");
+      return `
+      <div class="card">
+        <img class="img" src="${p.image_url}" />
+
+        <div class="content">
+
+          <div class="title">${p.name}</div>
+          <div class="desc">${p.description}</div>
+
+          <div class="row">
+            <div class="price">$${p.price}</div>
+            <div class="stock">
+              ${lowStock ? "⚠️ Low stock" : `Stock: ${p.stock}`}
+            </div>
+          </div>
+
+          ${lowStock ? `<div class="badge">Selling fast</div>` : ""}
+
+          <button class="btn buy"
+            onclick="buy('${p.sku}')"
+            ${p.stock <= 0 ? "disabled" : ""}
+          >
+            ${p.stock <= 0 ? "Out of Stock" : "Buy Now"}
+          </button>
+
+        </div>
+      </div>
+      `;
+    }).join("");
+
+  } catch(err){
+    document.getElementById("products").innerHTML =
+      "<p style='opacity:.7'>Failed to load products.</p>";
+  }
 }
 
-/* BUY PRODUCT */
+/* BUY FLOW */
 async function buy(sku){
   const res = await fetch(`${API}/create-checkout`, {
     method:"POST",
@@ -111,7 +247,12 @@ async function buy(sku){
   });
 
   const data = await res.json();
-  window.location.href = data.url;
+
+  if(data.url){
+    window.location.href = data.url;
+  } else {
+    alert("Checkout failed");
+  }
 }
 
 loadProducts();
