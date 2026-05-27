@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Meridian Market — AI Commerce Engine</title>
+<title>Meridian Market by NorthSky — AI Commerce Engine</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 
@@ -28,7 +28,7 @@ body{
   color:var(--text);
 }
 
-/* TOP STATUS BAR */
+/* TOP BAR */
 .topbar{
   padding:10px;
   text-align:center;
@@ -42,18 +42,22 @@ body{
 .header{
   max-width:1100px;
   margin:auto;
-  padding:50px 20px 20px;
+  padding:60px 20px 25px;
   text-align:center;
 }
 
 .header h1{
-  font-size:40px;
+  font-size:42px;
   font-weight:800;
 }
 
 .header p{
   color:var(--muted);
   margin-top:10px;
+  max-width:700px;
+  margin-left:auto;
+  margin-right:auto;
+  line-height:1.5;
 }
 
 /* GRID */
@@ -73,7 +77,7 @@ body{
 .card{
   background:linear-gradient(145deg,#111827,#0f172a);
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:18px;
   overflow:hidden;
   transition:.25s;
   display:flex;
@@ -81,7 +85,7 @@ body{
 }
 
 .card:hover{
-  transform:translateY(-5px);
+  transform:translateY(-6px);
   border-color:#3b82f655;
 }
 
@@ -171,20 +175,6 @@ button:disabled{
   cursor:not-allowed;
 }
 
-/* LOADING */
-.skeleton{
-  height:270px;
-  border-radius:16px;
-  background:linear-gradient(90deg,#111827,#1f2937,#111827);
-  background-size:200% 100%;
-  animation:shimmer 1.4s infinite;
-}
-
-@keyframes shimmer{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
-}
-
 /* FOOTER */
 footer{
   text-align:center;
@@ -199,24 +189,23 @@ footer{
 <body>
 
 <div class="topbar">
-  🤖 Meridian Market AI Engine • Real-time product scoring • Automated commerce system
+  ⚡ Meridian Market by NorthSky • Autonomous AI Commerce Engine • Live Product Intelligence
 </div>
 
 <div class="header">
   <h1>Meridian Market</h1>
-  <p>AI discovers, scores, and sells high-margin products automatically</p>
+  <p>
+    Built by NorthSky — an AI-powered commerce system that discovers,
+    scores, and sells winning products automatically in real time.
+  </p>
 </div>
 
 <div class="container">
-  <div id="products" class="grid">
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-  </div>
+  <div id="products" class="grid">Loading products...</div>
 </div>
 
 <footer>
-  © 2026 Meridian Market — Autonomous Commerce Intelligence System
+  © 2026 Meridian Market by NorthSky — Autonomous Commerce Intelligence System
 </footer>
 
 <script>
@@ -230,6 +219,11 @@ async function loadProducts(){
 
     const el = document.getElementById("products");
 
+    if(!products?.length){
+      el.innerHTML = "<p style='opacity:.6;text-align:center'>No products found</p>";
+      return;
+    }
+
     el.innerHTML = products.map(p => {
       const lowStock = p.stock <= 5;
       const winner = p.score && p.score > 80;
@@ -241,8 +235,8 @@ async function loadProducts(){
 
           <div class="content">
 
-            <div class="title">${escape(p.name)}</div>
-            <div class="desc">${escape(p.description || "")}</div>
+            <div class="title">${escapeHtml(p.name)}</div>
+            <div class="desc">${escapeHtml(p.description || "")}</div>
 
             <div class="row">
               <div class="price">$${Number(p.price).toFixed(2)}</div>
@@ -265,11 +259,11 @@ async function loadProducts(){
 
   } catch(err){
     document.getElementById("products").innerHTML =
-      "<p style='text-align:center;opacity:.6'>Failed to load products</p>";
+      "<p style='opacity:.6;text-align:center'>Failed to load products</p>";
   }
 }
 
-/* BUY */
+/* CHECKOUT */
 async function buy(sku){
   const res = await fetch(API + "/create-checkout", {
     method:"POST",
@@ -278,14 +272,11 @@ async function buy(sku){
   });
 
   const data = await res.json();
-
-  if(data.url){
-    window.location.href = data.url;
-  }
+  if(data.url) window.location.href = data.url;
 }
 
 /* SAFE ESCAPE */
-function escape(str){
+function escapeHtml(str){
   return String(str || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
