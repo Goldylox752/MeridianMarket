@@ -1,18 +1,13 @@
 import express from "express";
 import cors from "cors";
 import Stripe from "stripe";
-import dotenv from "dotenv";
-import nodemailer from "nodemailer";
-import axios from "axios";
 import { createClient } from "@supabase/supabase-js";
-
-dotenv.config();
 
 const app = express();
 
-/* =========================
-   CORE CONFIG
-========================= */
+app.use(cors());
+app.use(express.json());
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const supabase = createClient(
@@ -20,156 +15,110 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-/* Hidden internal contacts (NEVER exposed to frontend) */
-const OWNER_WHATSAPP = "17802679673";
-const SUPPLIER_WHATSAPP = "8617370511617";
-const OWNER_EMAIL = "byronsanche@zohomailcloud.ca";
-
 /* =========================
-   MIDDLEWARE
-========================= */
-app.use(cors({ origin: "*" }));
-app.use(express.json());
-
-/* Stripe webhook needs raw body */
-app.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      req.headers["stripe-signature"],
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error("Webhook error:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  /* =========================
-     PAYMENT SUCCESS HANDLER
-  ========================= */
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-
-    const order = {
-      email: session.customer_details?.email || "unknown",
-      amount: session.amount_total || 0,
-      status: "paid",
-      created_at: new Date().toISOString()
-    };
-
-    try {
-      /* 1. Save order */
-      await supabase.from("orders").insert([order]);
-
-      /* 2. Email confirmation */
-      await sendEmail(order);
-
-      /* 3. WhatsApp alert to owner */
-      await sendWhatsApp(
-        OWNER_WHATSAPP,
-        `🚁 NEW ORDER PAID\n\nEmail: ${order.email}\nAmount: $${order.amount / 100}`
-      );
-
-      /* 4. WhatsApp alert to supplier */
-      await sendWhatsApp(
-        SUPPLIER_WHATSAPP,
-        `📦 NEW DRONE ORDER\n\nShip Skymaster X1 ASAP\nCustomer: ${order.email}`
-      );
-
-      console.log("✅ Order processed successfully");
-    } catch (err) {
-      console.error("Order processing error:", err.message);
-    }
-  }
-
-  res.json({ received: true });
-});
-
-/* =========================
-   CREATE STRIPE CHECKOUT
+   CREATE CHECKOUT SESSION
 ========================= */
 app.post("/create-checkout", async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Skymaster X1 Drone",
-              description: "4K Roof Inspection Drone"
-            },
-            unit_amount: 89900
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Skymaster X1 Drone"
           },
-          quantity: 1
+          unit_amount: 89900
+        },
+        quantity: 1
+      }
+    ],
+    success_url: `${process.env.FRONTEND_URL}/success`,
+    cancel_url: `${process.env.FRONTEND_URL}/cancel`
+  });
+
+  res.json({ url: session.url });
+});
+
+/* =========================
+   STRIPE WEBHOOK
+========================= */
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      return res.status(400).send(`Webhook Error`);
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+
+      const email = session.customer_details?.email;
+
+      /* 1. STORE ORDER */
+      await supabase.from("orders").insert([
+        {
+          stripe_session: session.id,
+          email,
+          amount: session.amount_total,
+          status: "paid"
         }
-      ],
-      success_url: `${process.env.CLIENT_URL}/?success=true`,
-      cancel_url: `${process.env.CLIENT_URL}/?cancel=true`
-    });
+      ]);
 
-    return res.json({ url: session.url });
-  } catch (err) {
-    console.error("Checkout error:", err.message);
-    return res.status(500).json({ error: "Checkout failed" });
+      /* 2. REDUCE STOCK */
+      await supabase.rpc("decrease_stock", {
+        sku_input: "SKY-X1"
+      });
+
+      /* 3. EMAIL OWNER */
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: "RoofFlow <orders@roofflow.ai>",
+          to: "byronsanche@zohomailcloud.ca",
+          subject: "New Drone Order",
+          html: `New order received: ${email}`
+        })
+      });
+
+      /* 4. SUPPLIER WHATSAPP */
+      await fetch(
+        `https://api.callmebot.com/whatsapp.php?phone=${process.env.SUPPLIER_WA}&text=NEW%20ORDER%20Skymaster%20X1&apikey=${process.env.WA_KEY}`
+      );
+    }
+
+    res.json({ received: true });
   }
+);
+
+/* =========================
+   STOCK API
+========================= */
+app.get("/stock/:sku", async (req, res) => {
+  const { data } = await supabase
+    .from("products")
+    .select("stock")
+    .eq("sku", req.params.sku)
+    .single();
+
+  res.json(data);
 });
 
-/* =========================
-   EMAIL (ZOHO SMTP)
-========================= */
-const transporter = nodemailer.createTransport({
-  host: "smtp.zoho.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: OWNER_EMAIL,
-    pass: process.env.ZOHO_PASSWORD
-  }
-});
-
-async function sendEmail(order) {
-  await transporter.sendMail({
-    from: `RoofFlow Orders <${OWNER_EMAIL}>`,
-    to: OWNER_EMAIL,
-    subject: "🚁 New Drone Order Paid",
-    text: `
-NEW ORDER RECEIVED
-
-Email: ${order.email}
-Amount: $${order.amount / 100}
-Status: ${order.status}
-    `
-  });
-}
-
-/* =========================
-   WHATSAPP ALERT (CLICK-TO-CHAT)
-========================= */
-async function sendWhatsApp(phone, message) {
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-  await axios.get(url);
-}
-
-/* =========================
-   HEALTH CHECK
-========================= */
-app.get("/", (req, res) => {
-  res.json({
-    status: "online",
-    service: "Skymaster Checkout System",
-    version: "3.0"
-  });
-});
-
-/* =========================
-   START SERVER
-========================= */
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
-});
+app.listen(port, () => console.log("Server running"));
