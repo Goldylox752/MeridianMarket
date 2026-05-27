@@ -1,19 +1,51 @@
-async function startCheckout() {
+app.post("/create-checkout", async (req, res) => {
   try {
-    const res = await fetch("https://sanchesolutions.onrender.com/create-checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
+    const { sku } = req.body;
+
+    const { data: product } = await supabase
+      .from("products")
+      .select("*")
+      .eq("sku", sku)
+      .single();
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    if (product.stock <= 0) {
+      return res.status(400).json({ error: "Out of stock" });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: product.name,
+              description: product.description
+            },
+            unit_amount: Math.round(product.price * 100)
+          },
+          quantity: 1
+        }
+      ],
+
+      metadata: {
+        sku: product.sku
+      },
+
+      success_url: `${process.env.FRONTEND_URL}/success`,
+      cancel_url: `${process.env.FRONTEND_URL}/cancel`
     });
 
-    const data = await res.json();
+    return res.json({ url: session.url });
 
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Checkout failed - missing URL");
-    }
   } catch (err) {
     console.error(err);
-    alert("Checkout error - server not responding");
+    res.status(500).json({ error: "Checkout failed" });
   }
-}
+});
