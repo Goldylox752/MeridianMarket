@@ -1,54 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
-<title>Skymaster X1 Pro | Roof Inspection Drone System</title>
-
-<meta name="description" content="Skymaster X1 Pro helps contractors inspect roofs in minutes using 4K aerial imaging, GPS stability, and 35-minute flight time. Faster quotes. Higher close rate." />
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoofFlow Store</title>
 
 <style>
-body{margin:0;font-family:Inter,sans-serif;background:#0a0c15;color:#fff}
-.container{max-width:1100px;margin:auto;padding:20px}
-
-.hero{display:flex;flex-wrap:wrap;gap:40px;align-items:center;padding:60px 0}
-.left{flex:1}
-.right{flex:1;text-align:center}
-
-h1{font-size:3rem;line-height:1.1;margin-bottom:15px}
-p{opacity:.85}
-
-.badge{display:inline-block;background:#1e3a8a;padding:6px 12px;border-radius:999px;font-size:12px;margin-bottom:15px}
-
-.price{font-size:2.5rem;color:#4ade80;font-weight:800}
-.old{opacity:.5;text-decoration:line-through;margin-left:10px}
-
-.btn{padding:14px 22px;border-radius:999px;border:none;font-weight:700;cursor:pointer;margin-right:10px}
-.primary{background:#2563eb;color:#fff}
-.secondary{background:transparent;border:1px solid #3b82f6;color:#fff}
-
-.section{margin:60px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
-.card{background:#111827;padding:20px;border-radius:18px}
-
-.sticky{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#0b1220;
-padding:12px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-border-top:1px solid #1f2a44;
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:#0a0c15;
+  color:white;
 }
 
-.small{font-size:12px;opacity:.7}
-.stock{color:#facc15;font-weight:700}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:30px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:#111827;
+  border-radius:18px;
+  padding:15px;
+}
+
+img{
+  width:100%;
+  border-radius:12px;
+  height:160px;
+  object-fit:cover;
+}
+
+.price{
+  color:#4ade80;
+  font-weight:800;
+  font-size:18px;
+}
+
+.btn{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.buy{
+  background:#2563eb;
+  color:white;
+}
+
+.stock{
+  font-size:12px;
+  opacity:.7;
+}
 </style>
 </head>
 
@@ -56,135 +69,52 @@ border-top:1px solid #1f2a44;
 
 <div class="container">
 
-<!-- HERO -->
-<div class="hero">
+<h1>RoofFlow Store</h1>
+<p>Professional tools for contractors</p>
 
-  <div class="left">
-    <div class="badge">Roof Inspection Drone System</div>
+<div id="products" class="grid"></div>
 
-    <h1>Inspect roofs in minutes.<br>No ladder. No risk.</h1>
-
-    <p>
-      Skymaster X1 gives contractors instant 4K roof visuals, stable GPS flight,
-      and fast quoting tools that increase close rates.
-    </p>
-
-    <div style="margin:20px 0">
-      <span class="price">$899</span>
-      <span class="old">$1299</span>
-    </div>
-
-    <button class="btn primary" id="buyBtn">Buy Now</button>
-    <button class="btn secondary" id="leadBtn">Get Contractor Pricing</button>
-
-    <p class="small">Secure checkout • Free shipping • 2-year warranty</p>
-  </div>
-
-  <div class="right">
-    <div style="width:100%;height:260px;background:#111827;border-radius:20px;display:flex;align-items:center;justify-content:center">
-      🚁 Drone Preview
-    </div>
-  </div>
-
-</div>
-
-<!-- FEATURES -->
-<div class="section">
-  <h2>Why contractors use it</h2>
-
-  <div class="grid">
-    <div class="card">📷 4K Roof Imaging</div>
-    <div class="card">⏱ 35 Min Flight Time</div>
-    <div class="card">📡 GPS Stability</div>
-    <div class="card">📊 Instant Quote Media</div>
-  </div>
-</div>
-
-<!-- TRUST -->
-<div class="section">
-  <h2>Results</h2>
-  <div class="card">
-    “We cut inspection time by 70% and doubled our quote speed.”
-    <br><br>
-    — Roofing Contractor
-  </div>
-</div>
-
-</div>
-
-<!-- STICKY BAR -->
-<div class="sticky">
-  <div>
-    <div id="stock" class="stock">Loading stock...</div>
-    <div class="small">Ships in 24–48h</div>
-  </div>
-
-  <button class="btn primary" id="stickyBuy">Buy $899</button>
 </div>
 
 <script>
-/* =========================
-   BACKEND CONFIG
-========================= */
-const API = "https://YOUR-BACKEND.com"; // replace
-const SKU = "SKY-X1";
+const API = "https://YOUR-BACKEND.com";
 
-/* =========================
-   BUY FLOW (STRIPE)
-========================= */
-async function buy(){
+/* LOAD PRODUCTS */
+async function loadProducts(){
+  const res = await fetch(`${API}/products`);
+  const products = await res.json();
+
+  const container = document.getElementById("products");
+
+  container.innerHTML = products.map(p => `
+    <div class="card">
+      <img src="${p.image_url}" />
+      <h3>${p.name}</h3>
+      <p>${p.description}</p>
+
+      <div class="price">$${p.price}</div>
+      <div class="stock">Stock: ${p.stock}</div>
+
+      <button class="btn buy" onclick="buy('${p.sku}')">
+        Buy Now
+      </button>
+    </div>
+  `).join("");
+}
+
+/* BUY PRODUCT */
+async function buy(sku){
   const res = await fetch(`${API}/create-checkout`, {
-    method:"POST"
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ sku })
   });
 
   const data = await res.json();
-  if(data.url){
-    window.location.href = data.url;
-  } else {
-    alert("Checkout error");
-  }
+  window.location.href = data.url;
 }
 
-document.getElementById("buyBtn").onclick = buy;
-document.getElementById("stickyBuy").onclick = buy;
-
-/* =========================
-   LEAD FLOW
-========================= */
-document.getElementById("leadBtn").onclick = async () => {
-  const name = prompt("Full Name");
-  const email = prompt("Email");
-
-  if(!name || !email) return;
-
-  await fetch(`${API}/lead`, {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ name, email })
-  });
-
-  alert("We’ll contact you shortly.");
-};
-
-/* =========================
-   LIVE STOCK
-========================= */
-async function loadStock(){
-  try{
-    const res = await fetch(`${API}/stock/${SKU}`);
-    const data = await res.json();
-
-    document.getElementById("stock").innerText =
-      data.stock > 0
-        ? `Only ${data.stock} units left`
-        : "Out of stock";
-  } catch(e){
-    document.getElementById("stock").innerText =
-      "Stock unavailable";
-  }
-}
-
-loadStock();
+loadProducts();
 </script>
 
 </body>
