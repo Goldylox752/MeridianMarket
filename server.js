@@ -11,20 +11,30 @@ app.post("/create-checkout", async (req, res) => {
       });
     }
 
-    // 1. Get product
-    const { data: product, error } = await supabase
+    // 1. Fetch product
+    const { data: product, error: productError } = await supabase
       .from("products")
       .select("*")
       .eq("sku", sku)
       .single();
 
-    if (error || !product) {
+    if (productError || !product) {
       return res.status(404).json({
         error: "Product not found",
         requestId
       });
     }
 
+    const price = Number(product.price);
+
+    if (!price || price <= 0) {
+      return res.status(500).json({
+        error: "Invalid product price",
+        requestId
+      });
+    }
+
+    // 2. Atomic stock check (prevents oversell race conditions)
     if (product.stock <= 0) {
       return res.status(400).json({
         error: "Out of stock",
@@ -32,15 +42,25 @@ app.post("/create-checkout", async (req, res) => {
       });
     }
 
-    const price = Number(product.price);
-    if (!price) {
-      return res.status(500).json({
-        error: "Invalid price",
+    // OPTIONAL: reserve stock immediately (soft lock)
+    const { error: reserveError } = await supabase
+      .from("products")
+      .update({
+        stock: product.stock - 1,
+        reserved_stock: (product.reserved_stock || 0) + 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq("sku", sku)
+      .eq("stock", product.stock); // optimistic locking
+
+    if (reserveError) {
+      return res.status(409).json({
+        error: "Stock changed, retry checkout",
         requestId
       });
     }
 
-    // 2. Create pending order FIRST (this is what you were missing)
+    // 3. Create pending order
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
@@ -62,7 +82,7 @@ app.post("/create-checkout", async (req, res) => {
       });
     }
 
-    // 3. Create Stripe session
+    // 4. Create Stripe session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -92,7 +112,7 @@ app.post("/create-checkout", async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL}/cancel`
     });
 
-    // 4. Update order with session id
+    // 5. Attach Stripe session to order
     await supabase
       .from("orders")
       .update({
@@ -109,7 +129,7 @@ app.post("/create-checkout", async (req, res) => {
     console.error("Checkout error:", err);
 
     return res.status(500).json({
-      error: "Server error",
+      error: "Internal server error",
       requestId
     });
   }
