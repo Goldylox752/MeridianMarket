@@ -1,310 +1,192 @@
 import express from "express";
 import cors from "cors";
-import Stripe from "stripe";
+import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 
-/* =========================
-   ENV + CLIENTS
-========================= */
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+/* ───────── MIDDLEWARE ───────── */
+app.use(cors({ origin: "*" }));
+app.use(express.json({ limit: "1mb" }));
 
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests" }
+  })
+);
+
+/* ───────── SUPABASE ───────── */
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const BASE_URL = process.env.BASE_URL;
-const FRONTEND_URL = process.env.FRONTEND_URL;
-const SUPPLIER_WEBHOOK = process.env.SUPPLIER_WEBHOOK;
-
-/* =========================
-   MIDDLEWARE
-========================= */
-app.use(cors());
-app.use(express.json());
-
-// Stripe requires raw body
-const stripeRaw = express.raw({ type: "application/json" });
-
-/* =========================
-   HELPERS
-========================= */
-const safeNumber = (v) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-};
-
-const log = (tag, data) => {
-  console.log(`[${tag}]`, JSON.stringify(data));
-};
-
-/* =========================
-   1. PRODUCTS (STORE FRONT)
-========================= */
-app.get("/products", async (req, res) => {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  res.json(data || []);
-});
-
-/* =========================
-   2. CREATE CHECKOUT (ATOMIC ORDER ENGINE)
-========================= */
-app.post("/create-checkout", async (req, res) => {
-  const requestId = crypto.randomUUID();
-  const { sku } = req.body;
-
-  if (!sku) {
-    return res.status(400).json({ error: "Missing SKU", requestId });
+/* ───────── INTENT + PRODUCT SIGNAL MODEL ───────── */
+const intents = [
+  {
+    name: "buying",
+    keywords: ["buy", "price", "cost", "order", "checkout"],
+    reply: "I can show you the best-performing products right now.",
+    score: 0.95
+  },
+  {
+    name: "product_research",
+    keywords: ["best", "recommend", "winning", "product", "trending"],
+    reply: "Here are high-performing products from Meridian Market.",
+    score: 0.9
+  },
+  {
+    name: "automation",
+    keywords: ["automation", "ai", "system", "bot"],
+    reply: "Meridian Market uses AI to discover and test winning products automatically.",
+    score: 0.85
+  },
+  {
+    name: "dropshipping",
+    keywords: ["dropship", "aliexpress", "supplier"],
+    reply: "We source and test products from global suppliers in real time.",
+    score: 0.8
+  },
+  {
+    name: "support",
+    keywords: ["help", "contact", "support"],
+    reply: "Support is available via your dashboard inside Meridian Market.",
+    score: 0.6
   }
+];
 
-  try {
-    /* FETCH PRODUCT */
-    const { data: product, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("sku", sku)
-      .single();
+/* ───────── INTENT DETECTOR ───────── */
+function detectIntent(message = "") {
+  const text = message.toLowerCase();
 
-    if (error || !product) {
-      return res.status(404).json({ error: "Product not found", requestId });
-    }
+  let best = null;
+  let bestScore = 0;
 
-    const price = safeNumber(product.price);
+  for (const intent of intents) {
+    const matches = intent.keywords.filter(k => text.includes(k)).length;
 
-    if (!price || price <= 0) {
-      return res.status(400).json({ error: "Invalid price", requestId });
-    }
+    if (matches > 0) {
+      const score = matches * intent.score;
 
-    if (product.stock <= 0) {
-      return res.status(400).json({ error: "Out of stock", requestId });
-    }
-
-    /* RESERVE STOCK (OPTIMISTIC LOCK) */
-    const { error: stockErr } = await supabase
-      .from("products")
-      .update({
-        stock: product.stock - 1
-      })
-      .eq("sku", sku)
-      .eq("stock", product.stock);
-
-    if (stockErr) {
-      return res.status(409).json({
-        error: "Stock changed, retry",
-        requestId
-      });
-    }
-
-    /* CREATE ORDER */
-    const { data: order, error: orderErr } = await supabase
-      .from("orders")
-      .insert({
-        sku,
-        product_id: product.id,
-        status: "pending",
-        amount: price,
-        request_id: requestId
-      })
-      .select()
-      .single();
-
-    if (orderErr) {
-      return res.status(500).json({ error: "Order failed", requestId });
-    }
-
-    /* STRIPE SESSION */
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: product.name,
-              description: product.description || "Meridian Market product"
-            },
-            unit_amount: Math.round(price * 100)
-          },
-          quantity: 1
-        }
-      ],
-
-      metadata: {
-        sku,
-        order_id: order.id,
-        request_id: requestId
-      },
-
-      success_url: `${FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/cancel`
-    });
-
-    /* ATTACH SESSION */
-    await supabase
-      .from("orders")
-      .update({ stripe_session_id: session.id })
-      .eq("id", order.id);
-
-    res.json({
-      url: session.url,
-      requestId
-    });
-
-  } catch (err) {
-    console.error("Checkout error:", err);
-    res.status(500).json({ error: "Server error", requestId });
-  }
-});
-
-/* =========================
-   3. STRIPE WEBHOOK (SOURCE OF TRUTH)
-========================= */
-app.post("/stripe-webhook", stripeRaw, async (req, res) => {
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      req.headers["stripe-signature"],
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  try {
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-      const { order_id, sku } = session.metadata;
-
-      /* IDENTITY CHECK */
-      const { data: order } = await supabase
-        .from("orders")
-        .select("status")
-        .eq("id", order_id)
-        .single();
-
-      if (order?.status === "paid") {
-        return res.json({ received: true });
+      if (score > bestScore) {
+        bestScore = score;
+        best = intent;
       }
+    }
+  }
 
-      /* MARK PAID */
-      await supabase
-        .from("orders")
-        .update({
-          status: "paid",
-          stripe_session_id: session.id
-        })
-        .eq("id", order_id);
+  return best;
+}
 
-      /* TRIGGER FULFILLMENT */
-      await fetch(`${BASE_URL}/fulfill`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sku, order_id })
-      });
+/* ───────── RESPONSE ENGINE ───────── */
+function generateReply(intent) {
+  if (!intent) {
+    return {
+      text: "Tell me what you're trying to sell or build — I can show you winning products instantly.",
+      type: "fallback",
+      confidence: 0.25
+    };
+  }
+
+  return {
+    text: intent.reply,
+    type: intent.name,
+    confidence: intent.score
+  };
+}
+
+/* ───────── MERIDIAN LEAD + BUYING SCORE ───────── */
+function scoreOpportunity(message, intent) {
+  let score = 10;
+
+  if (message.length > 50) score += 10;
+  if (intent?.name === "buying") score += 30;
+  if (intent?.name === "product_research") score += 25;
+  if (intent?.name === "dropshipping") score += 20;
+  if (message.includes("best")) score += 10;
+
+  return Math.min(score, 100);
+}
+
+/* ───────── BOT / AI ENGINE ───────── */
+app.post("/api/bot", async (req, res) => {
+  try {
+    const { message, sessionId } = req.body;
+
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Invalid message" });
     }
 
-    res.json({ received: true });
+    const id = sessionId || crypto.randomUUID();
 
-  } catch (err) {
-    console.error("Webhook processing error:", err);
-    res.status(500).json({ error: "Webhook failure" });
-  }
-});
+    const intent = detectIntent(message);
+    const reply = generateReply(intent);
+    const score = scoreOpportunity(message, intent);
 
-/* =========================
-   4. FULFILLMENT ENGINE
-========================= */
-app.post("/fulfill", async (req, res) => {
-  const { sku, order_id } = req.body;
+    /* ───────── STORE CONVERSATION ───────── */
+    const { data: existing } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("session_id", id)
+      .limit(1);
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("sku", sku)
-    .single();
+    if (!existing || existing.length === 0) {
+      await supabase.from("conversations").insert([
+        {
+          session_id: id,
+          message,
+          reply: reply.text,
+          intent: reply.type,
+          opportunity_score: score,
+          confidence: reply.confidence,
+          created_at: new Date().toISOString()
+        }
+      ]);
+    }
 
-  if (!product) {
-    return res.status(404).json({ error: "Product not found" });
-  }
+    /* ───────── EVENT TRACKING (FOR AI LEARNING LOOP) ───────── */
+    await supabase.from("events").insert([
+      {
+        type: "user_intent",
+        intent: reply.type,
+        score,
+        created_at: new Date().toISOString()
+      }
+    ]);
 
-  try {
-    await fetch(SUPPLIER_WEBHOOK, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sku,
-        order_id,
-        product_name: product.name,
-        supplier_url: product.supplier_url
-      })
+    /* ───────── RESPONSE ───────── */
+    return res.json({
+      ...reply,
+      opportunityScore: score,
+      sessionId: id
     });
 
-    await supabase
-      .from("orders")
-      .update({ status: "fulfilled" })
-      .eq("id", order_id);
-
-    res.json({ ok: true });
-
   } catch (err) {
-    console.error("Fulfillment error:", err);
-    res.status(500).json({ error: "Fulfillment failed" });
+    console.error("Meridian Engine Error:", err);
+
+    return res.status(500).json({
+      error: "Internal server error"
+    });
   }
 });
 
-/* =========================
-   5. PRODUCT IMPORT PIPELINE (AI ENTRY)
-========================= */
-app.post("/import-product", async (req, res) => {
-  const ali = req.body;
-
-  const cost = safeNumber(ali.price);
-
-  if (!cost) {
-    return res.status(400).json({ error: "Invalid price" });
-  }
-
-  const product = {
-    sku: crypto.randomUUID(),
-    name: ali.title,
-    description: ali.description || "AI imported product",
-    cost_price: cost,
-    price: Number((cost * 2.2).toFixed(2)),
-    image_url: ali.image,
-    supplier_url: ali.url,
-    stock: 100,
-    created_at: new Date().toISOString()
-  };
-
-  const { data, error } = await supabase
-    .from("products")
-    .insert(product)
-    .select()
-    .single();
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  res.json(data);
+/* ───────── HEALTH CHECK ───────── */
+app.get("/", (req, res) => {
+  res.json({
+    status: "online",
+    system: "Meridian Market AI Engine",
+    mode: "autonomous commerce intelligence"
+  });
 });
 
-/* =========================
-   START SERVER
-========================= */
-const PORT = process.env.PORT || 3000;
+/* ───────── START ───────── */
+const port = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Meridian Market OS running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`🚀 Meridian Market AI Engine running on port ${port}`);
 });
