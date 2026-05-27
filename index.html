@@ -4,50 +4,56 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Meridian Market</title>
+<title>Meridian Market — AI Commerce Engine</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 
 <style>
 :root{
-  --bg:#0a0c15;
-  --panel:#111827;
-  --border:rgba(255,255,255,0.06);
-  --green:#4ade80;
-  --blue:#2563eb;
-  --muted:rgba(255,255,255,0.7);
+  --bg:#070A12;
+  --panel:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --text:#EAF2FF;
+  --muted:rgba(234,242,255,0.65);
+  --blue:#3b82f6;
+  --green:#22c55e;
+  --gold:#fbbf24;
 }
+
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
-  margin:0;
   font-family:Inter,sans-serif;
-  background:var(--bg);
-  color:white;
+  background:radial-gradient(circle at top,#111a33,var(--bg));
+  color:var(--text);
 }
 
-/* TOP BAR */
+/* TOP STATUS BAR */
 .topbar{
   padding:10px;
   text-align:center;
   font-size:12px;
   background:#0f172a;
   border-bottom:1px solid var(--border);
+  letter-spacing:.3px;
 }
 
 /* HEADER */
 .header{
   max-width:1100px;
   margin:auto;
-  padding:40px 20px 10px;
+  padding:50px 20px 20px;
+  text-align:center;
 }
 
 .header h1{
-  margin:0;
-  font-size:34px;
+  font-size:40px;
+  font-weight:800;
 }
 
 .header p{
   color:var(--muted);
+  margin-top:10px;
 }
 
 /* GRID */
@@ -60,28 +66,28 @@ body{
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:20px;
+  gap:18px;
 }
 
 /* CARD */
 .card{
   background:linear-gradient(145deg,#111827,#0f172a);
   border:1px solid var(--border);
-  border-radius:18px;
+  border-radius:16px;
   overflow:hidden;
-  transition:.2s;
+  transition:.25s;
   display:flex;
   flex-direction:column;
 }
 
 .card:hover{
-  transform:translateY(-4px);
-  border-color:#2563eb55;
+  transform:translateY(-5px);
+  border-color:#3b82f655;
 }
 
 .img{
   width:100%;
-  height:180px;
+  height:190px;
   object-fit:cover;
   background:#0b1220;
 }
@@ -94,7 +100,7 @@ body{
 }
 
 .title{
-  font-size:16px;
+  font-size:15px;
   font-weight:700;
 }
 
@@ -104,7 +110,7 @@ body{
   line-height:1.4;
 }
 
-/* META ROW */
+/* ROW */
 .row{
   display:flex;
   justify-content:space-between;
@@ -114,6 +120,7 @@ body{
 .price{
   color:var(--green);
   font-weight:800;
+  font-size:16px;
 }
 
 .score{
@@ -121,13 +128,19 @@ body{
   color:#93c5fd;
 }
 
-/* BADGES */
-.badge{
-  font-size:11px;
+/* TAGS */
+.tags{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.tag{
+  font-size:10px;
   padding:4px 8px;
   border-radius:999px;
   background:#1f2937;
-  display:inline-block;
+  color:var(--muted);
 }
 
 .winner{
@@ -136,35 +149,32 @@ body{
 }
 
 /* BUTTON */
-.btn{
+button{
   width:100%;
   padding:12px;
-  border-radius:12px;
   border:none;
-  cursor:pointer;
+  border-radius:12px;
   font-weight:800;
+  cursor:pointer;
+  background:var(--blue);
+  color:white;
   transition:.2s;
 }
 
-.buy{
-  background:var(--blue);
-  color:white;
-}
-
-.buy:hover{
-  background:#1d4ed8;
+button:hover{
+  background:#2563eb;
   transform:translateY(-1px);
 }
 
-.buy:disabled{
+button:disabled{
   background:#374151;
   cursor:not-allowed;
 }
 
 /* LOADING */
 .skeleton{
-  height:260px;
-  border-radius:18px;
+  height:270px;
+  border-radius:16px;
   background:linear-gradient(90deg,#111827,#1f2937,#111827);
   background-size:200% 100%;
   animation:shimmer 1.4s infinite;
@@ -175,11 +185,13 @@ body{
   100%{background-position:-200% 0}
 }
 
-/* EMPTY */
-.empty{
+/* FOOTER */
+footer{
   text-align:center;
   padding:40px;
-  opacity:.7;
+  font-size:12px;
+  color:var(--muted);
+  border-top:1px solid var(--border);
 }
 </style>
 </head>
@@ -187,12 +199,12 @@ body{
 <body>
 
 <div class="topbar">
-  🤖 Meridian Market AI Layer • Live product intelligence • Auto checkout ready
+  🤖 Meridian Market AI Engine • Real-time product scoring • Automated commerce system
 </div>
 
 <div class="header">
   <h1>Meridian Market</h1>
-  <p>AI-powered product intelligence engine for high-margin dropshipping</p>
+  <p>AI discovers, scores, and sells high-margin products automatically</p>
 </div>
 
 <div class="container">
@@ -203,52 +215,47 @@ body{
   </div>
 </div>
 
+<footer>
+  © 2026 Meridian Market — Autonomous Commerce Intelligence System
+</footer>
+
 <script>
 const API = "https://YOUR-BACKEND.com";
 
 /* LOAD PRODUCTS */
 async function loadProducts(){
   try{
-    const res = await fetch(`${API}/products`);
+    const res = await fetch(API + "/products");
     const products = await res.json();
 
-    const container = document.getElementById("products");
+    const el = document.getElementById("products");
 
-    if(!products || !products.length){
-      container.innerHTML = `<div class="empty">No products found</div>`;
-      return;
-    }
-
-    container.innerHTML = products.map(p => {
+    el.innerHTML = products.map(p => {
       const lowStock = p.stock <= 5;
       const winner = p.score && p.score > 80;
 
       return `
         <div class="card">
-          <img class="img" src="${escapeHtml(p.image_url)}"/>
+
+          <img class="img" src="${p.image_url}" />
 
           <div class="content">
 
-            <div class="title">${escapeHtml(p.name)}</div>
-            <div class="desc">${escapeHtml(p.description || "")}</div>
+            <div class="title">${escape(p.name)}</div>
+            <div class="desc">${escape(p.description || "")}</div>
 
             <div class="row">
               <div class="price">$${Number(p.price).toFixed(2)}</div>
-              <div class="score">
-                Score: ${p.score || "N/A"}
-              </div>
+              <div class="score">Score: ${p.score || "N/A"}</div>
             </div>
 
-            <div class="row">
-              <div class="badge">${lowStock ? "⚠️ Low stock" : "In stock"}</div>
-              ${winner ? `<div class="badge winner">WINNER</div>` : ""}
+            <div class="tags">
+              <div class="tag">${lowStock ? "Low Stock" : "In Stock"}</div>
+              ${winner ? `<div class="tag winner">WINNER</div>` : ""}
             </div>
 
-            <button class="btn buy"
-              onclick="buy('${p.sku}')"
-              ${p.stock <= 0 ? "disabled" : ""}
-            >
-              ${p.stock <= 0 ? "Out of Stock" : "Buy Now"}
+            <button onclick="buy('${p.sku}')" ${p.stock<=0?'disabled':''}>
+              ${p.stock<=0 ? "Sold Out" : "Buy Now"}
             </button>
 
           </div>
@@ -258,34 +265,27 @@ async function loadProducts(){
 
   } catch(err){
     document.getElementById("products").innerHTML =
-      `<div class="empty">Failed to load products</div>`;
+      "<p style='text-align:center;opacity:.6'>Failed to load products</p>";
   }
 }
 
-/* CHECKOUT */
+/* BUY */
 async function buy(sku){
-  try{
-    const res = await fetch(`${API}/create-checkout`, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ sku })
-    });
+  const res = await fetch(API + "/create-checkout", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ sku })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if(data.url){
-      window.location.href = data.url;
-    } else {
-      alert("Checkout failed");
-    }
-
-  }catch(e){
-    alert("Network error");
+  if(data.url){
+    window.location.href = data.url;
   }
 }
 
-/* SAFE RENDER */
-function escapeHtml(str){
+/* SAFE ESCAPE */
+function escape(str){
   return String(str || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
