@@ -12,16 +12,22 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-/* =========================
-   MIDDLEWARE
-========================= */
 app.use(cors());
 app.use(express.json());
 
-const jsonRaw = express.raw({ type: "application/json" });
+const rawBody = express.raw({ type: "application/json" });
 
 /* =========================
-   1. PRODUCTS API
+   HELPERS
+========================= */
+
+const safeNumber = (v) => {
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+};
+
+/* =========================
+   1. PRODUCTS API (STORE FRONT)
 ========================= */
 app.get("/products", async (req, res) => {
   const { data, error } = await supabase
@@ -30,11 +36,12 @@ app.get("/products", async (req, res) => {
     .order("created_at", { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
+
   res.json(data);
 });
 
 /* =========================
-   2. CHECKOUT ENGINE (SAFE + ATOMIC)
+   2. CREATE CHECKOUT (ATOMIC ORDER ENGINE)
 ========================= */
 app.post("/create-checkout", async (req, res) => {
   const requestId = crypto.randomUUID();
@@ -45,7 +52,7 @@ app.post("/create-checkout", async (req, res) => {
   }
 
   try {
-    // 1. fetch product
+    /* 1. Fetch product */
     const { data: product, error } = await supabase
       .from("products")
       .select("*")
@@ -56,31 +63,32 @@ app.post("/create-checkout", async (req, res) => {
       return res.status(404).json({ error: "Product not found", requestId });
     }
 
+    const price = safeNumber(product.price);
+
+    if (!price) {
+      return res.status(500).json({ error: "Invalid price", requestId });
+    }
+
     if (product.stock <= 0) {
       return res.status(400).json({ error: "Out of stock", requestId });
     }
 
-    const price = Number(product.price);
-    if (!price || price <= 0) {
-      return res.status(500).json({ error: "Invalid price", requestId });
-    }
-
-    // 2. reserve stock (simple lock)
-    const { error: stockError } = await supabase
+    /* 2. Reserve stock (safe lock) */
+    const { error: stockErr } = await supabase
       .from("products")
       .update({ stock: product.stock - 1 })
       .eq("sku", sku)
       .eq("stock", product.stock);
 
-    if (stockError) {
+    if (stockErr) {
       return res.status(409).json({
-        error: "Stock changed, retry",
+        error: "Stock conflict, retry checkout",
         requestId
       });
     }
 
-    // 3. create order
-    const { data: order, error: orderError } = await supabase
+    /* 3. Create order (PENDING) */
+    const { data: order, error: orderErr } = await supabase
       .from("orders")
       .insert({
         sku,
@@ -92,40 +100,37 @@ app.post("/create-checkout", async (req, res) => {
       .select()
       .single();
 
-    if (orderError) {
-      return res.status(500).json({ error: "Order failed", requestId });
+    if (orderErr) {
+      return res.status(500).json({ error: "Order creation failed", requestId });
     }
 
-    // 4. Stripe session
+    /* 4. Stripe session */
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-
       line_items: [
         {
           price_data: {
             currency: "usd",
             product_data: {
               name: product.name,
-              description: product.description || "RoofFlow product"
+              description: product.description || "Meridian Market product"
             },
             unit_amount: Math.round(price * 100)
           },
           quantity: 1
         }
       ],
-
       metadata: {
         sku,
         order_id: order.id,
         request_id: requestId
       },
-
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`
     });
 
-    // 5. attach session
+    /* 5. attach session */
     await supabase
       .from("orders")
       .update({ stripe_session_id: session.id })
@@ -134,15 +139,15 @@ app.post("/create-checkout", async (req, res) => {
     res.json({ url: session.url, requestId });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Checkout error:", err);
+    res.status(500).json({ error: "Server error", requestId });
   }
 });
 
 /* =========================
    3. STRIPE WEBHOOK (SOURCE OF TRUTH)
 ========================= */
-app.post("/stripe-webhook", jsonRaw, async (req, res) => {
+app.post("/stripe-webhook", rawBody, async (req, res) => {
   let event;
 
   try {
@@ -157,20 +162,20 @@ app.post("/stripe-webhook", jsonRaw, async (req, res) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { sku, order_id } = session.metadata;
+    const { order_id, sku } = session.metadata;
 
-    // idempotent safety: prevent double processing
-    const { data: order } = await supabase
+    /* idempotency guard */
+    const { data: existing } = await supabase
       .from("orders")
       .select("status")
       .eq("id", order_id)
       .single();
 
-    if (order?.status === "paid") {
-      return res.json({ received: true });
+    if (existing?.status === "paid") {
+      return res.json({ ok: true });
     }
 
-    // mark paid
+    /* mark paid */
     await supabase
       .from("orders")
       .update({
@@ -179,7 +184,7 @@ app.post("/stripe-webhook", jsonRaw, async (req, res) => {
       })
       .eq("id", order_id);
 
-    // trigger fulfillment pipeline
+    /* trigger fulfillment */
     await fetch(`${process.env.BASE_URL}/fulfill`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -191,7 +196,7 @@ app.post("/stripe-webhook", jsonRaw, async (req, res) => {
 });
 
 /* =========================
-   4. FULFILLMENT ENGINE (DROPSHIP LAYER)
+   4. FULFILLMENT ENGINE
 ========================= */
 app.post("/fulfill", async (req, res) => {
   const { sku, order_id } = req.body;
@@ -202,9 +207,11 @@ app.post("/fulfill", async (req, res) => {
     .eq("sku", sku)
     .single();
 
-  if (!product) return res.status(404).json({ error: "Product not found" });
+  if (!product) {
+    return res.status(404).json({ error: "Product not found" });
+  }
 
-  // send to supplier (AliExpress agent / webhook / automation tool)
+  /* send to supplier automation layer */
   await fetch(process.env.SUPPLIER_WEBHOOK, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -212,11 +219,11 @@ app.post("/fulfill", async (req, res) => {
       sku,
       order_id,
       product_name: product.name,
-      supplier_url: product.supplier_url,
-      quantity: 1
+      supplier_url: product.supplier_url
     })
   });
 
+  /* update order */
   await supabase
     .from("orders")
     .update({ status: "fulfilled" })
@@ -226,18 +233,18 @@ app.post("/fulfill", async (req, res) => {
 });
 
 /* =========================
-   5. PRODUCT IMPORT PIPELINE
+   5. IMPORT PIPELINE (AI STORE LAYER ENTRY POINT)
 ========================= */
 app.post("/import-product", async (req, res) => {
   const ali = req.body;
 
-  const cost = Number(ali.price || 0);
-  if (!cost) return res.status(400).json({ error: "Invalid product price" });
+  const cost = safeNumber(ali.price);
+  if (!cost) return res.status(400).json({ error: "Invalid price" });
 
   const mapped = {
     sku: crypto.randomUUID(),
     name: ali.title,
-    description: ali.description || "Imported product",
+    description: ali.description || "AI imported product",
     cost_price: cost,
     price: Number((cost * 2.2).toFixed(2)),
     image_url: ali.image,
@@ -261,5 +268,5 @@ app.post("/import-product", async (req, res) => {
    START SERVER
 ========================= */
 app.listen(3000, () => {
-  console.log("🚀 RoofFlow OS running on port 3000");
+  console.log("🚀 Meridian Market OS running on port 3000");
 });
