@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Meridian Market — AI Chat Intelligence</title>
+<title>Meridian Market — AI Sales Chat</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 
@@ -27,18 +27,23 @@ body{
 
 /* NAV */
 nav{
-  padding:18px 24px;
-  border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
+  padding:18px 24px;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  background:rgba(10,12,15,.9);
+  backdrop-filter:blur(20px);
 }
 .logo{font-weight:800}
 .logo span{color:var(--muted)}
 
 /* HERO */
 .hero{
-  padding:80px 24px;
   max-width:900px;
+  margin:auto;
+  padding:90px 24px;
 }
 .hero h1{
   font-size:56px;
@@ -49,7 +54,7 @@ nav{
   margin-top:14px;
 }
 
-/* CHAT FLOAT BUTTON */
+/* CHAT BUTTON */
 .chat-bubble{
   position:fixed;
   bottom:24px;
@@ -73,8 +78,8 @@ nav{
   position:fixed;
   bottom:100px;
   right:24px;
-  width:360px;
-  height:520px;
+  width:380px;
+  height:540px;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:16px;
@@ -84,6 +89,8 @@ nav{
   z-index:9999;
 }
 
+.chat-window.open{display:flex}
+
 .chat-header{
   padding:14px;
   border-bottom:1px solid var(--border);
@@ -91,15 +98,8 @@ nav{
   justify-content:space-between;
   align-items:center;
 }
-
-.chat-title{
-  font-weight:700;
-}
-
-.chat-close{
-  cursor:pointer;
-  color:var(--muted);
-}
+.chat-title{font-weight:700}
+.chat-close{cursor:pointer;color:var(--muted)}
 
 /* MESSAGES */
 .chat-body{
@@ -116,7 +116,6 @@ nav{
   padding:10px 12px;
   border-radius:10px;
   font-size:13px;
-  line-height:1.4;
 }
 
 .user{
@@ -152,40 +151,36 @@ nav{
   font-weight:700;
   cursor:pointer;
 }
-
-/* ANIMATION */
-.chat-window.open{
-  display:flex;
-}
 </style>
 </head>
 
 <body>
 
 <nav>
-  <div class="logo">Meridian <span>AI Chat</span></div>
+  <div class="logo">Meridian <span>AI Sales</span></div>
 </nav>
 
 <section class="hero">
-  <h1>Turn Visitors Into<br>Customers With AI Chat</h1>
+  <h1>AI That Sells For You<br>24/7 On Your Website</h1>
   <p>
-    Replace Intercom with a fully autonomous AI sales + support agent
-    that qualifies leads and books calls in real time.
+    Replace chat tools like Intercom with an AI sales agent that qualifies visitors,
+    collects leads, and books calls automatically.
   </p>
 </section>
 
-<!-- CHAT UI -->
+<!-- FLOAT CHAT BUTTON -->
 <div class="chat-bubble" onclick="toggleChat()">AI</div>
 
+<!-- CHAT WINDOW -->
 <div class="chat-window" id="chatWindow">
 
   <div class="chat-header">
-    <div class="chat-title">Meridian AI</div>
+    <div class="chat-title">Meridian AI Sales</div>
     <div class="chat-close" onclick="toggleChat()">✕</div>
   </div>
 
   <div class="chat-body" id="chatBody">
-    <div class="msg ai">Hey 👋 I’m your AI assistant. Ask me anything about Meridian.</div>
+    <div class="msg ai">Hey 👋 I can help you find winning products or book a demo. What are you looking for?</div>
   </div>
 
   <div class="chat-input">
@@ -200,10 +195,18 @@ const chatWindow = document.getElementById("chatWindow");
 const chatBody = document.getElementById("chatBody");
 const input = document.getElementById("input");
 
+/* 🔥 LEAD STATE */
+let lead = {
+  email: null,
+  stage: 0,
+  intent: "cold"
+};
+
 function toggleChat(){
   chatWindow.classList.toggle("open");
 }
 
+/* ADD MESSAGE */
 function addMsg(text, type){
   const div = document.createElement("div");
   div.className = `msg ${type}`;
@@ -212,32 +215,68 @@ function addMsg(text, type){
   chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-async function sendMsg(){
+/* INTENT ENGINE */
+function detectIntent(text){
+  text = text.toLowerCase();
+  if(text.includes("book") || text.includes("call")) return "hot";
+  if(text.includes("price") || text.includes("cost")) return "buy";
+  if(text.includes("how") || text.includes("works")) return "warm";
+  return "cold";
+}
+
+/* 🔥 AI SALES ENGINE */
+function salesEngine(text){
+
+  const intent = detectIntent(text);
+  lead.intent = intent;
+
+  /* STAGE 0 — QUALIFY */
+  if(lead.stage === 0){
+    lead.stage++;
+
+    if(intent === "hot"){
+      return "Perfect — I can get you booked. What’s your email?";
+    }
+
+    return "Are you trying to find winning products or book a demo call?";
+  }
+
+  /* STAGE 1 — EMAIL CAPTURE */
+  if(lead.stage === 1){
+    if(text.includes("@")){
+      lead.email = text;
+      lead.stage++;
+      return "Got it. Want me to show top winning products or book your strategy call?";
+    }
+    return "Drop your email so I can send results.";
+  }
+
+  /* STAGE 2 — CLOSE */
+  if(lead.stage === 2){
+    if(intent === "hot" || text.includes("book")){
+      return "Done. Book your call here 👇\nhttps://calendly.com/your-link";
+    }
+    return "I recommend starting with a free strategy call — want me to book you in?";
+  }
+
+  return "Tell me what you're trying to achieve — I’ll guide you.";
+}
+
+/* SEND MESSAGE */
+function sendMsg(){
   const text = input.value;
   if(!text) return;
 
   addMsg(text, "user");
   input.value = "";
 
-  // placeholder AI response (replace with backend)
-  addMsg("Typing...", "ai");
+  addMsg("Thinking...", "ai");
 
-  const res = await fetch("/api/chat", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ message: text })
-  }).catch(()=>null);
-
-  // remove "Typing..."
-  chatBody.lastChild.remove();
-
-  if(!res){
-    addMsg("AI offline. Connect backend at /api/chat", "ai");
-    return;
-  }
-
-  const data = await res.json();
-  addMsg(data.reply || "No response", "ai");
+  setTimeout(() => {
+    chatBody.lastChild.remove();
+    const reply = salesEngine(text);
+    addMsg(reply, "ai");
+  }, 600);
 }
 </script>
 
