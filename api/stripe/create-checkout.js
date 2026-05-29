@@ -1,3 +1,9 @@
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-06-20",
+});
+
 app.post("/create-checkout", async (req, res) => {
   try {
     const { sku } = req.body;
@@ -16,6 +22,10 @@ app.post("/create-checkout", async (req, res) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
+    if (!product.price || isNaN(product.price)) {
+      return res.status(400).json({ error: "Invalid product price" });
+    }
+
     if (product.stock <= 0) {
       return res.status(400).json({ error: "Out of stock" });
     }
@@ -30,26 +40,33 @@ app.post("/create-checkout", async (req, res) => {
             currency: "usd",
             product_data: {
               name: product.name,
-              description: product.description
+              description: product.description || "",
             },
-            unit_amount: Math.round(product.price * 100)
+            unit_amount: Math.round(Number(product.price) * 100),
           },
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
 
       metadata: {
-        sku: product.sku
+        sku: product.sku,
       },
 
       success_url: `${process.env.FRONTEND_URL}/success`,
-      cancel_url: `${process.env.FRONTEND_URL}/cancel`
+      cancel_url: `${process.env.FRONTEND_URL}/cancel`,
     });
+
+    if (!session.url) {
+      return res.status(500).json({ error: "Stripe session URL missing" });
+    }
 
     return res.json({ url: session.url, id: session.id });
 
   } catch (err) {
     console.error("Checkout failed:", err);
-    return res.status(500).json({ error: "Checkout failed" });
+    return res.status(500).json({
+      error: "Checkout failed",
+      details: err.message,
+    });
   }
 });
