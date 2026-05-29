@@ -4,10 +4,12 @@ import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
-/* ───────── APP ───────── */
+/* ─────────────────────────────
+   APP SETUP
+───────────────────────────── */
 const app = express();
 
-/* ───────── MIDDLEWARE ───────── */
+/* IMPORTANT: webhook compatibility */
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "1mb" }));
 
@@ -21,16 +23,53 @@ app.use(
   })
 );
 
-/* ───────── SUPABASE ───────── */
+/* ─────────────────────────────
+   SUPABASE
+───────────────────────────── */
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-/* ───────── INTENTS (UNCHANGED) ───────── */
-const intents = [/* same as yours */];
+/* ─────────────────────────────
+   INTENTS
+───────────────────────────── */
+const intents = [
+  {
+    name: "buying",
+    keywords: ["buy", "price", "cost", "order", "checkout"],
+    reply: "I can show you the best-performing products right now.",
+    score: 0.95
+  },
+  {
+    name: "product_research",
+    keywords: ["best", "recommend", "winning", "product", "trending"],
+    reply: "Here are high-performing products from Meridian Market.",
+    score: 0.9
+  },
+  {
+    name: "automation",
+    keywords: ["automation", "ai", "system", "bot"],
+    reply: "Meridian Market uses AI to discover winning products.",
+    score: 0.85
+  },
+  {
+    name: "dropshipping",
+    keywords: ["dropship", "aliexpress", "supplier"],
+    reply: "We source and test products from global suppliers.",
+    score: 0.8
+  },
+  {
+    name: "support",
+    keywords: ["help", "support", "contact"],
+    reply: "Support is available inside your dashboard.",
+    score: 0.6
+  }
+];
 
-/* ───────── INTENT DETECTOR (UNCHANGED) ───────── */
+/* ─────────────────────────────
+   INTENT ENGINE
+───────────────────────────── */
 function detectIntent(message = "") {
   const text = message.toLowerCase();
 
@@ -45,6 +84,7 @@ function detectIntent(message = "") {
 
     if (matches > 0) {
       const score = matches * intent.score;
+
       if (score > bestScore) {
         bestScore = score;
         best = intent;
@@ -55,11 +95,10 @@ function detectIntent(message = "") {
   return best;
 }
 
-/* ───────── RESPONSE ENGINE ───────── */
 function generateReply(intent) {
   if (!intent) {
     return {
-      text: "Tell me what you're trying to sell or build — I can show you winning products instantly.",
+      text: "Tell me what you're trying to build — I can help instantly.",
       type: "fallback",
       confidence: 0.25
     };
@@ -72,7 +111,6 @@ function generateReply(intent) {
   };
 }
 
-/* ───────── SCORING (UNCHANGED) ───────── */
 function scoreOpportunity(message, intent) {
   let score = 10;
 
@@ -94,14 +132,14 @@ function scoreOpportunity(message, intent) {
   return Math.min(score, 100);
 }
 
-/* ─────────────────────────────────────────────
-   BOT ENGINE (UNCHANGED)
-──────────────────────────────────────────── */
+/* ─────────────────────────────
+   BOT ENDPOINT
+───────────────────────────── */
 app.post("/api/bot", async (req, res) => {
   try {
     const { message, sessionId } = req.body;
 
-    if (!message || typeof message !== "string") {
+    if (!message) {
       return res.status(400).json({ error: "Invalid message" });
     }
 
@@ -111,41 +149,38 @@ app.post("/api/bot", async (req, res) => {
     const reply = generateReply(intent);
     const score = scoreOpportunity(message, intent);
 
+    /* save conversation (first message only) */
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
       .eq("session_id", id)
       .limit(1);
 
-    const isNewSession = !existing || existing.length === 0;
-
-    if (isNewSession) {
-      await supabase.from("conversations").insert([
-        {
-          session_id: id,
-          message,
-          reply: reply.text,
-          intent: reply.type,
-          opportunity_score: score,
-          confidence: reply.confidence,
-          created_at: new Date().toISOString()
-        }
-      ]);
+    if (!existing?.length) {
+      await supabase.from("conversations").insert({
+        session_id: id,
+        message,
+        reply: reply.text,
+        intent: reply.type,
+        opportunity_score: score,
+        confidence: reply.confidence,
+        created_at: new Date().toISOString()
+      });
     }
 
-    // 🔥 QUEUE EVENT INSTEAD OF DIRECT INSERT (NEW SYSTEM)
-    await supabase.from("event_queue").insert([
-      {
-        type: "user_intent",
-        status: "pending",
-        payload: {
-          sessionId: id,
-          message,
-          intent: reply.type,
-          score
-        }
+    /* enqueue event */
+    await supabase.from("event_queue").insert({
+      type: "user_intent",
+      status: "pending",
+      attempts: 0,
+      run_after: new Date().toISOString(),
+      payload: {
+        sessionId: id,
+        message,
+        intent: reply.type,
+        score
       }
-    ]);
+    });
 
     return res.json({
       ...reply,
@@ -154,72 +189,42 @@ app.post("/api/bot", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Meridian Engine Error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("BOT ERROR:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-/* ─────────────────────────────────────────────
-   🔥 EVENT WORKER (NEW)
-──────────────────────────────────────────── */
-async function processEventQueue() {
-  const { data: events } = await supabase
+/* ─────────────────────────────
+   EVENT WORKER (SAFE VERSION)
+───────────────────────────── */
+
+let workerRunning = false;
+
+/* atomic job claim (NO DUPLICATES) */
+async function fetchAndClaimJobs() {
+  const { data } = await supabase
     .from("event_queue")
-    .select("*")
+    .update({ status: "processing" })
     .eq("status", "pending")
     .lte("run_after", new Date().toISOString())
+    .select("*")
     .limit(10);
 
-  if (!events?.length) return;
-
-  for (const event of events) {
-    try {
-      await handleEvent(event);
-
-      await supabase
-        .from("event_queue")
-        .update({
-          status: "completed",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", event.id);
-
-    } catch (err) {
-      await supabase
-        .from("event_queue")
-        .update({
-          status:
-            (event.attempts || 0) + 1 >= 5 ? "failed" : "pending",
-
-          attempts: (event.attempts || 0) + 1,
-          last_error: err.message,
-          run_after: new Date(Date.now() + 30000).toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", event.id);
-
-      console.error("❌ Worker event failed:", err.message);
-    }
-  }
+  return data || [];
 }
 
-/* ───────── EVENT HANDLER ───────── */
+/* event handler */
 async function handleEvent(event) {
   const payload = event.payload;
 
   switch (event.type) {
     case "user_intent": {
-      // Example: analytics tracking / enrichment
-
-      await supabase.from("events").insert([
-        {
-          type: "processed_intent",
-          intent: payload.intent,
-          score: payload.score,
-          created_at: new Date().toISOString()
-        }
-      ]);
-
+      await supabase.from("events").insert({
+        type: "processed_intent",
+        intent: payload.intent,
+        score: payload.score,
+        created_at: new Date().toISOString()
+      });
       return;
     }
 
@@ -228,27 +233,73 @@ async function handleEvent(event) {
   }
 }
 
-/* ─────────────────────────────────────────────
-   🔥 WORKER LOOP (RUNS IN BACKGROUND)
-──────────────────────────────────────────── */
-setInterval(() => {
-  processEventQueue().catch((err) =>
-    console.error("Worker crash:", err)
-  );
+/* main worker loop */
+async function processEventQueue() {
+  const jobs = await fetchAndClaimJobs();
+
+  if (!jobs.length) return;
+
+  for (const job of jobs) {
+    try {
+      await handleEvent(job);
+
+      await supabase
+        .from("event_queue")
+        .update({
+          status: "completed",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", job.id);
+
+    } catch (err) {
+      await supabase
+        .from("event_queue")
+        .update({
+          status:
+            (job.attempts || 0) + 1 >= 5 ? "failed" : "pending",
+          attempts: (job.attempts || 0) + 1,
+          last_error: err.message,
+          run_after: new Date(Date.now() + 30000).toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", job.id);
+
+      console.error("WORKER ERROR:", err.message);
+    }
+  }
+}
+
+/* safe interval (no overlap) */
+setInterval(async () => {
+  if (workerRunning) return;
+
+  workerRunning = true;
+
+  try {
+    await processEventQueue();
+  } catch (err) {
+    console.error("Worker crash:", err);
+  }
+
+  workerRunning = false;
 }, 5000);
 
-/* ───────── HEALTH ───────── */
+/* ─────────────────────────────
+   HEALTH CHECK
+───────────────────────────── */
 app.get("/", (req, res) => {
   res.json({
     status: "online",
-    system: "Meridian Market AI Engine",
-    mode: "event-driven + queue worker"
+    system: "Meridian Market Engine",
+    mode: "queue-driven backend (MVP production)"
   });
 });
 
-/* ───────── START ───────── */
+/* ─────────────────────────────
+   START SERVER
+───────────────────────────── */
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-  console.log(`🚀 Meridian Engine running on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 });
